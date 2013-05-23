@@ -19,15 +19,14 @@ char** tokens;
 
 
 int main(int argc, char* args[]){
-	//char* tokens;
+	char** tokens;
 	int errorcode;
 	
 	while(1){
 		printf("%s> ", shname);
-		printf("");
+		fflush(stdout);
 		char input[MAX_BYTES];
 		tokens = calloc(MAX_TOKENS, sizeof *tokens);
-		//char* tokens[MAX_TOKENS];
 		errorcode = 0;
 		
 		
@@ -37,24 +36,19 @@ int main(int argc, char* args[]){
 			perror("READ ERROR");
 		else{
 			input[errorcode] = '\0';
-			printf("Input was: %s\n", input);
+			//printf("Input was: %s\n", input);
 			
 			//create tokenizer
 			tokenizer = init_tokenizer(input);
 			
 			int i = 0;
 			while((tok = get_next_token(tokenizer)) != NULL){
-				//if(!isspace(){
-				if(tok[0] != '\n' && tok[0] != '\0' && tok[0] != ' '){
-					tokens[i++] = tok;
-					//free(tok);
-					printf("token is: %s\n", tokens[i-1]);
-				}
+				tokens[i++] = tok;
+				//printf("token is: %s\n", tokens[i-1]);
 			}
 			
 			int j;
 			for(j = 0; j < i; j++){
-			//while(
 				checkTok(tokens[j], j, tokens);
 				printf("Token at %i is %s\n", j, tokens[j]);
 			}
