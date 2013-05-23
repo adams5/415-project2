@@ -4,8 +4,14 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include "tokenizer.h"
 
-void checkTok(char* tempTok, int pos, char* tokens[]);
 
+TOKENIZER *tokenizer;
+char* tok;
+
+void checkTok(char* tempTok, int pos, char** tokens);
+
+int getTokens(char* input, char** tokens);
 
 #endif
