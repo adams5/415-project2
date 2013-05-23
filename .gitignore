@@ -1,0 +1,3 @@
+#git ignore file to specify files to ignore from repository
+#ignore files with ~ extention
+*.~
