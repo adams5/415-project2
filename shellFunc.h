@@ -18,6 +18,8 @@ int checkBG(char** command);
 
 int execute(char** command, int nTokens, int bg);
 
+int checkPipe(char* input, int legth);
+
 void processPipe();
 
 #endif
