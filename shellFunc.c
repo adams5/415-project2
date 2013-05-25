@@ -67,6 +67,7 @@ void checkTok(char* tempTok, int pos, char** tokens){
 		char* process2 = calloc(20, sizeof(char*));
 		
 		process1 = tokens[0];
+		process1[pos] = NULL;
 		process2 = tokens[pos +1];
 
 
@@ -131,4 +132,48 @@ int getTokens(char* input, char** tokens){
 
 }
 
-//void execute(
+int checkBG(char** command){
+	int i =0;
+	while(command[i] != NULL){ i++; }
+	
+	char* arg = command[i-1];
+	i = 0;
+	while(arg[i] != NULL){ i++; }
+	
+	if (arg[i-1] == '&'){
+		//background process
+		return 1;	
+	}
+	else{
+		//forground process
+		return 0;
+	}
+	
+}
+
+int execute(char** command, int nTokens){
+	int status;
+	pid_t pid = -1;
+	
+	status = checkBG(command);
+	
+	//Fork and execute comman line
+	if((pid = fork()) == 0){				//in child process
+		//check for pipes and redirection
+		int j;
+		for(j = 0; j < nTokens-1; j++){
+			checkTok(command[j], j, command);
+			printf("Token at %i is %s\n", j, command[j]);
+		}
+		
+		status = execvp(command[0], command);
+		exit(status);
+	}
+	else if(pid > 0){						//in parent process
+		status = waitpid(pid, &status, 0);
+		return status;
+	}
+	else 									//ERROR
+		perror("Fork Error");
+
+}
