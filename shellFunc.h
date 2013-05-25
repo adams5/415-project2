@@ -14,4 +14,6 @@ void checkTok(char* tempTok, int pos, char** tokens);
 
 int getTokens(char* input, char** tokens);
 
+void processPipe();
+
 #endif
