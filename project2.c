@@ -32,11 +32,12 @@ int main(int argc, char* args[]){
 		if(status == -1)							//if failed to read, output error
 			perror("READ ERROR");
 		else{
-			input[status] = '\0';				//else, add null terminating char to input			
+			input[status] = '\0';					//else, add null terminating char to input			
 			numTokens = getTokens(input, tokens);	//create array of tokens
 			
-			status = checkPipe();
-			status = execute(tokens, numTokens);
+			status = checkPipe(tokens, numTokens);	//check for pipe in command line input
+			if(status == -1)						//if no pipe, run single command
+				status = execute(tokens, numTokens, status);
 
 
 

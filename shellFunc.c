@@ -14,11 +14,11 @@ void processPipe(char* process1, char* process2){
 	 
 	pid = fork();	//fork the process
 	
-	if(pid == 0){
-		close(pipeFD[0]); //close the read end of the pipe
-		if(pipeFD[1] != STDOUT_FILENO) //if the pipeFD[1] is not already stdout
+	if(pid == 0){						//in child process
+		close(pipeFD[0]); 				//close the read end of the pipe
+		if(pipeFD[1] != STDOUT_FILENO) 	//if the pipeFD[1] is not already stdout
 			dup2(pipeFD[1],STDOUT_FILENO); //dup the pipeFD[1] to stdout
-		close(pipeFD[1]);		//close the write end of the pipe
+		close(pipeFD[1]);				//close the write end of the pipe
 	}
 	//handle redirection if there's any
 	
@@ -93,7 +93,7 @@ void checkTok(char* tempTok, int pos, char** tokens){
 	}
 	else if(tempTok[0] == '>'){
 		printf("redirecting output\n");
-		int new_out = open(tokens[pos+1], O_WRONLY | O_CREAT | O_CLOEXEC , 0644);
+		int new_out = open(tokens[pos+1], O_WRONLY | O_CREAT , 0644);
 		dup2(new_out, STDOUT_FILENO);
 		printf("output redirected to %s\n", tokens[pos+1]);
 	}
@@ -142,6 +142,7 @@ int checkBG(char** command){
 	
 	if (arg[i-1] == '&'){
 		//background process
+		arg[i-1] = '\0';
 		return 1;	
 	}
 	else{
@@ -151,7 +152,7 @@ int checkBG(char** command){
 	
 }
 
-int execute(char** command, int nTokens){
+int execute(char** command, int nTokens, int bg){
 	int status;
 	pid_t pid = -1;
 	
@@ -170,8 +171,14 @@ int execute(char** command, int nTokens){
 		exit(status);
 	}
 	else if(pid > 0){						//in parent process
-		status = waitpid(pid, &status, 0);
-		return status;
+		if(bg == 1){
+			//not sure what to do here maybe
+			printf("Running: %s\n", *command);
+		}
+		else{
+			status = waitpid(pid, &status, 0);
+			return status;
+		}
 	}
 	else 									//ERROR
 		perror("Fork Error");
