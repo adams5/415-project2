@@ -16,8 +16,8 @@ void processPipe(char* process1, char* process2){
 	
 	if(pid == 0){
 		close(pipeFD[0]); //close the read end of the pipe
-		if(pipeFD[1] != stdout) //if the pipeFD[1] is not already stdout
-			dup2(pipeFD[1],stdout); //dup the pipeFD[1] to stdout
+		if(pipeFD[1] != STDOUT_FILENO) //if the pipeFD[1] is not already stdout
+			dup2(pipeFD[1],STDOUT_FILENO); //dup the pipeFD[1] to stdout
 		close(pipeFD[1]);		//close the write end of the pipe
 	}
 	//handle redirection if there's any
@@ -42,8 +42,8 @@ void processPipe(char* process1, char* process2){
 	
 	if(pid == 0){
 		close(pipeFD[1]);	 //close the read end of the pipe
-		if(pipeFD[0] !=  stdin)		//if the pipeFD[0] is not already stdin
-			dup2(pipeFD[0],stdin); //dup the pipeFD[0] to stdin
+		if(pipeFD[0] !=  STDIN_FILENO)		//if the pipeFD[0] is not already stdin
+			dup2(pipeFD[0],STDIN_FILENO); //dup the pipeFD[0] to stdin
 		close(pipeFD[0]); //close the write end of the pipe
 	}
 	
@@ -89,13 +89,13 @@ void checkTok(char* tempTok, int pos, char** tokens){
 		printf("This is process 2 %s\n", process2);	
 			*/
 		printf("This is a pipe\n");
-<<<<<<< HEAD
+//<<<<<<< HEAD
 		int new_out = open("tempFile", O_WRONLY | O_CREAT, 0644);
 		int new_in = new_out;
-=======
+//=======
 		processPipe(process1, process2);
 		///do something
->>>>>>> 8419ebea7f4ee04b9500a555546630ca0041c9d0
+//>>>>>>> 8419ebea7f4ee04b9500a555546630ca0041c9d0
 	}
 	else
 		//printf("Parse Error:");
