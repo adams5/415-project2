@@ -14,7 +14,8 @@ void checkTok(char* tempTok, int pos, char** tokens){
 	}
 	else if(tempTok[0] == '|'){
 		printf("This is a pipe\n");
-		///do something
+		int new_out = open("tempFile", O_WRONLY | O_CREAT, 0644);
+		int new_in = new_out;
 	}
 	else
 		//printf("Parse Error:");
