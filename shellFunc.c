@@ -101,10 +101,10 @@ void checkTok(char* tempTok, int pos, char** tokens){
 		dup2(new_in, STDIN_FILENO);
 		printf("input redirected\n");
 	}
-	else 
-	else
+	//else 
 		//printf("Parse Error:");
-		return;
+		
+	return;
 	
 	
 }

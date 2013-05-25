@@ -37,15 +37,16 @@ int main(int argc, char* args[]){
 			input[errorcode] = '\0';				//else, add null terminating char to input			
 			numTokens = getTokens(input, tokens);	//create array of tokens
 			
-			//check for pipes and redirection
-			int j;
-			for(j = 0; j < numTokens-1; j++){
-				checkTok(tokens[j], j, tokens);
-				printf("Token at %i is %s\n", j, tokens[j]);
-			}
 
 			//Fork and execute comman line
 			if((pid = fork()) == 0){				//in child process
+				//check for pipes and redirection
+				int j;
+				for(j = 0; j < numTokens-1; j++){
+					checkTok(tokens[j], j, tokens);
+					printf("Token at %i is %s\n", j, tokens[j]);
+				}
+				
 				errorcode = execvp(tokens[0], tokens);
 				exit(0);
 			}
