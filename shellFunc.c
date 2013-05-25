@@ -164,31 +164,31 @@ int execute(char** command, int nTokens, int bg){
 	int status;
 	pid_t pid = -1;
 	
-	status = checkBG(command);
 	
 	//Fork and execute comman line
-	if((pid = fork()) == 0){				//in child process
-		//check for pipes and redirection
-		int j;
-		for(j = 0; j < nTokens-1; j++){
-			checkTok(command[j], j, command);
-			printf("Token at %i is %s\n", j, command[j]);
-		}
+	//if((pid = fork()) == 0){				//in child process
+		////check for pipes and redirection
+		//int j;
+		//for(j = 0; j < nTokens-1; j++){
+			//checkTok(command[j], j, command);
+			//printf("Token at %i is %s\n", j, command[j]);
+		//}
 		
-		status = execvp(command[0], command);
-		exit(status);
-	}
-	else if(pid > 0){						//in parent process
-		if(bg == 1){
-			//not sure what to do here maybe
-			printf("Running: %s\n", *command);
-		}
-		else{
-			status = waitpid(pid, &status, 0);
-			return status;
-		}
-	}
-	else 									//ERROR
-		perror("Fork Error");
+		status =  execvp(command[0], command);
+		
+		//exit(status);
+	//}
+	//else if(pid > 0){						//in parent process
+		//if(bg == 1){
+			////not sure what to do here maybe
+			//printf("Running: %s\n", *command);
+		//}
+		//else{
+			//status = waitpid(pid, &status, 0);
+			//return status;
+		//}
+	//}
+	//else 									//ERROR
+		//perror("Fork Error");
 
 }

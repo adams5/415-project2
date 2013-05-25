@@ -29,15 +29,25 @@ int main(int argc, char* args[]){
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
 		
 		//Check if read failed
-		if(status == -1)							//if failed to read, output error
+		if(status == -1)								//if failed to read, output error
 			perror("READ ERROR");
 		else{
-			input[status] = '\0';					//else, add null terminating char to input			
-			numTokens = getTokens(input, tokens);	//create array of tokens
+			input[status] = '\0';						//else, add null terminating char to input			
 			
-			status = checkPipe(tokens, numTokens);	//check for pipe in command line input
-			if(status == -1)						//if no pipe, run single command
+			status = checkPipe(input, status);			//check for pipe in command line input
+			
+			if(status == -1){							//if no pipe, run single command
+				numTokens = getTokens(input, tokens);	//create array of tokens
+				status = checkBG(command);
 				status = execute(tokens, numTokens, status);
+			}
+			else{
+				input[status] = '\0';
+				
+				char* p1 = input[0];
+				char* p2 = input[status +1];
+				processPipe(p1, p2);
+			}
 
 
 
