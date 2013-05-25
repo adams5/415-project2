@@ -1,4 +1,5 @@
 #include "shellFunc.h"
+pid_t groupID;
 
 int checkPipe(char input[], int length){
 	for(int i=0; i < length; i++){
@@ -21,6 +22,9 @@ void processPipe(char* process1, char* process2){
 	 */
 	 
 	pid = fork();	//fork the process
+	
+	groupID = getpid(); //save the groupID as the parent's pid
+	setpgid(groupID, getpid()); //set the parent's group id
 	
 	if(pid == 0){						//in child process
 		close(pipeFD[0]); 				//close the read end of the pipe
@@ -47,6 +51,8 @@ void processPipe(char* process1, char* process2){
 	 */
 	
 	pid = fork(); //fork the process
+	
+	setpgid(groupID, getpid());	//set the child'd group to be that of the it's parent
 	
 	if(pid == 0){
 		close(pipeFD[1]);	 //close the read end of the pipe
