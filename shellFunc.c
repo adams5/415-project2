@@ -23,8 +23,10 @@ void processPipe(char* process1, char* process2){
 	 
 	pid = fork();	//fork the process
 	
-	groupID = getpid(); //save the groupID as the parent's pid
-	setpgid(groupID, getpid()); //set the parent's group id
+	if(pid>0){
+		groupID = getpid(); //save the groupID as the parent's pid
+		setpgid(getpid(),groupID); //set the parent's group id
+	}
 	
 	if(pid == 0){						//in child process
 		close(pipeFD[0]); 				//close the read end of the pipe
@@ -52,9 +54,9 @@ void processPipe(char* process1, char* process2){
 	
 	pid = fork(); //fork the process
 	
-	setpgid(groupID, getpid());	//set the child'd group to be that of the it's parent
-	
 	if(pid == 0){
+		setpgid(getpid(),groupID);	//set the child'd group to be that of the it's parent
+		
 		close(pipeFD[1]);	 //close the read end of the pipe
 		if(pipeFD[0] !=  STDIN_FILENO)		//if the pipeFD[0] is not already stdin
 			dup2(pipeFD[0],STDIN_FILENO); //dup the pipeFD[0] to stdin
