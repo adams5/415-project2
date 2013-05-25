@@ -38,8 +38,8 @@ int main(int argc, char* args[]){
 			
 			if(status == -1){							//if no pipe, run single command
 				numTokens = getTokens(input, tokens);	//create array of tokens
-				status = checkBG(command);
-				status = execute(tokens, numTokens, status);
+				status = checkBG(tokens);
+				checkRed(tokens, 0);
 			}
 			else{
 				input[status] = '\0';

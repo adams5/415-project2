@@ -69,50 +69,72 @@ void processPipe(char* process1, char* process2){
 	//waitpid(pid);
 }
 
-void checkTok(char* tempTok, int pos, char** tokens){
-	if(tempTok[0] == '|'){
-		char* process1 = calloc(pos, sizeof(char*));
-		char* process2 = calloc(20, sizeof(char*));
+void checkRed(char** tokens, int proc){
+	//if(tempTok[0] == '|'){
+		//char* process1 = calloc(pos, sizeof(char*));
+		//char* process2 = calloc(20, sizeof(char*));
 		
-		process1 = tokens[0];
-		process1[pos] = NULL;
-		process2 = tokens[pos +1];
+		//process1 = tokens[0];
+		//process1[pos] = NULL;
+		//process2 = tokens[pos +1];
 
 
-		//get the first process string
-		/*for(int i = 0; i < pos; i++){
-			printf("pos: %i\n", pos);
-			process1[i] = tokens[pos-1];
-		}
+		////get the first process string
+		///*for(int i = 0; i < pos; i++){
+			//printf("pos: %i\n", pos);
+			//process1[i] = tokens[pos-1];
+		//}
 			
-		printf("This is process 1 %s\n", process1);
-		for(int i = pos; i < sizeof(tokens); i++)
-			process2[i] = tokens[pos-1];	
-		printf("This is process 2 %s\n", process2);	
-			*/
-		printf("This is a pipe\n");
-//<<<<<<< HEAD
-		//int new_out = open("tempFile", O_WRONLY | O_CREAT, 0644);
-		//int new_in = new_out;
-////=======
-		processPipe(process1, process2);
-		///do something
-//>>>>>>> 8419ebea7f4ee04b9500a555546630ca0041c9d0
-	}
-	else if(tempTok[0] == '>'){
-		printf("redirecting output\n");
-		int new_out = open(tokens[pos+1], O_WRONLY | O_CREAT , 0644);
-		dup2(new_out, STDOUT_FILENO);
-		printf("output redirected to %s\n", tokens[pos+1]);
-	}
-	else if(tempTok[0] == '<'){
-		int new_in = open(tokens[pos-1], O_RDONLY);
-		dup2(new_in, STDIN_FILENO);
-		printf("input redirected\n");
-	}
+		//printf("This is process 1 %s\n", process1);
+		//for(int i = pos; i < sizeof(tokens); i++)
+			//process2[i] = tokens[pos-1];	
+		//printf("This is process 2 %s\n", process2);	
+			//*/
+		//printf("This is a pipe\n");
+////<<<<<<< HEAD
+		////int new_out = open("tempFile", O_WRONLY | O_CREAT, 0644);
+		////int new_in = new_out;
+//////=======
+		//processPipe(process1, process2);
+		/////do something
+////>>>>>>> 8419ebea7f4ee04b9500a555546630ca0041c9d0
+	//}
+	int i = 0;
+	while(tokens[i] != NULL){
+		
+		char* arg = tokens[i];
+		int j = 0;
+		while(arg[j] != NULL){
+			j++;
+		}
+		
+		if(arg[j-1] == '>'){
+			if(proc == 1){
+				printf("Error: Overlapping Redirection\n");
+			}
+			else{
+				printf("redirecting output\n");
+				int new_out = open(tokens[i+1], O_WRONLY | O_CREAT , 0644);
+				dup2(new_out, STDOUT_FILENO);
+				printf("output redirected to %s\n", tokens[i+1]);
+				arg[j-1] = '\0';
+			}
+		}
+		else if(arg[j-1] == '<'){
+			if(proc == 2){
+				printf("Error: Overlapping Redirection\n");
+			}
+			else{
+				int new_in = open(tokens[i-1], O_RDONLY);
+				dup2(new_in, STDIN_FILENO);
+				printf("input redirected\n");
+				arg[j-1] = '\0';
+			}
+		}
 	//else 
 		//printf("Parse Error:");
-		
+		i++;
+	}	
 	return;
 	
 	

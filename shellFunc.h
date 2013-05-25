@@ -10,7 +10,7 @@
 TOKENIZER *tokenizer;
 char* tok;
 
-void checkTok(char* tempTok, int pos, char** tokens);
+void checkRed(char** tokens, int proc);
 
 int getTokens(char* input, char** tokens);
 
