@@ -38,26 +38,50 @@ int main(int argc, char* args[]){
 			continue;
 		}
 		else{
-			input[status] = '\0';						//else, add null terminating char to input			
+			input[status] = '\0';	//else, add null terminating char to input			
+				
 			
-			status = checkPipe(input, status);			//check for pipe in command line input
+			pid_t pid = fork();
 			
-			if(status == -1){							//if no pipe, run single command
-				numTokens = getTokens(input, tokens);	//create array of tokens
-				status = checkBG(tokens);				//check for & for backgrounding a process
-				checkRed(tokens, 0);					//check for and handle redirection
+			//child
+			if(pid==0){
+				//check for a pipe
+				status = checkPipe(input, status);			//check for pipe in command line input
+				
+				//if there's a pipe
+				if(status > -1){
+					input[status] = '\0';
+					
+					char* p1 =  input[0];
+					char* p2 = input[status +1];
+					processPipe(p1, p2);
+				}
+				//if no pipe, run single command
+				else if(status == -1){
+					numTokens = getTokens(input, tokens);	//create array of tokens
+					status = checkBG(tokens);				//check for & for backgrounding a process
+					checkRed(tokens, 0);					//check for and handle redirection
+					execute(tokens, 0, status);			//run single command
+				}
+			}
+			//parent
+			else if(pid > 0){
+				if(status == 1)
+					waitpid(pid, &status, 0);
+			}
+			else
+				printf("Error: Could not create child\n");
+							
+		}
+			
+			
+			if(status == -1){							
 				pid_t pid;
 				pid = fork();
 				if(pid == 0){
-					execute(tokens, 0, status);			//run single command
+					
 				}
-				else if(pid > 0){
-					if(status == 1)
-						waitpid(pid, &status, 0);
-				}
-				else
-					printf("Error: Could not create child\n");
-			}
+
 			else{
 				input[status] = '\0';
 				
