@@ -12,5 +12,8 @@ shellFunc.o: shellFunc.c shellFunc.h
 tokenizer.o: tokenizer.c 
 	gcc -o tokenizer.o -c tokenizer.c -std=c99
 
+shell_signals.o: shell_signals.c
+	gcc -o shell_signals.o -c shell_signals.c -std=c99
+
 clean:
 	rm *.o project2
