@@ -43,7 +43,7 @@ void processPipe(char* process1, char* process2){
 		//parse arguments
 		
 		//test with process 1 being "ls -l"
-		char *process1Args[] = {"ls", NULL};	
+		char *process1Args[] = {"ls", "-l",NULL};	
 		execvp("ls",process1Args);
 		
 		
@@ -80,7 +80,7 @@ void processPipe(char* process1, char* process2){
 		
 		
 		//test with process 2 being "ws -l"
-		char *process2Args[] = {"wc", NULL};
+		char *process2Args[] = {"wc", "-l",NULL};
 		execvp("wc",process2Args);
 	}
 	//parent
@@ -180,6 +180,7 @@ int checkBG(char** command){
 }
 
 int execute(char** command, int nTokens, int bg){
+	
 	int status;
 	pid_t pid = -1;
 	
@@ -198,3 +199,6 @@ int execute(char** command, int nTokens, int bg){
 	}
 	return status;
 }
+
+
+
