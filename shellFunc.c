@@ -10,7 +10,7 @@ int checkPipe(char input[], int length){
 }
 
 void processPipe(char* process1, char* process2){	
-	
+	groupID = getpgid();
 	
 	
 	//printf("Process pipe entered\n");
@@ -51,6 +51,7 @@ void processPipe(char* process1, char* process2){
 	}	
 	//parent
 	else{
+		waitpid(pid);
 		close(pipeFD[1]);				//close the write end of the pipe	
 		setpgid(getpid(),groupID); //set the parent's group id
 	}	
@@ -86,10 +87,10 @@ void processPipe(char* process1, char* process2){
 	//parent
 	else{
 		setpgid(getpid(),groupID); //set the parent's group id
+		waitpid(pid);
 
 	}	
 		
-	waitpid(pid);
 
 	
 }
@@ -178,6 +179,8 @@ int checkBG(char** command){
 	}
 	
 }
+
+int processCommand(char** command){}
 
 int execute(char** command, int nTokens, int bg){
 	

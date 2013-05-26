@@ -67,6 +67,7 @@ int main(int argc, char* args[]){
 			//parent
 			else if(pid > 0){
 				if(status == 1)
+					setpgid(pid, pid);
 					waitpid(pid, &status, 0);
 			}
 			else
