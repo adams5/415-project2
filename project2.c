@@ -15,6 +15,7 @@
 int main(int argc, char* args[]){
 	char** tokens;									//declare array of tokens
 	char* shname = "kinda-sh";						//initialize command line prompt string
+	int length;
 	
 	while(1){
 		printf("%s> ", shname);						//output command line prompt
@@ -37,7 +38,8 @@ int main(int argc, char* args[]){
 			continue;
 		}
 		else{
-			input[status] = '\0';	//else, add null terminating char to input			
+			input[status] = '\0';	//else, add null terminating char to input	
+			length = status;		
 			pid_t pid = fork();
 			
 			//child
@@ -47,22 +49,32 @@ int main(int argc, char* args[]){
 				
 				//if there's a pipe
 				if(status > -1){
+					char p1[status];
+					char p2[length - status];
 					//debugging
 					printf("there's a pipe\n");
 					printf("the command line is: %s\n", input);
 					
+					
+					//printf("the command line is: %s\n", input[0]);
+					
+					//char* p1 =  input[0];
+					//char* p2 = input[status +1];
 					input[status] = '\0';
+					printf("set pipe to null\n", input);
 					
-					printf("the command line is: %s\n", input[0]);
-					
-					char* p1 =  input[0];
-					char* p2 = input[status +1];
+					memcpy(p1, &input[0], status);
+					printf("copied first command to p1\n", input);
+					memcpy(p2, &input[status +1], length - status);
+					printf("copied second command to p2\n", input);
 					
 					//debugging
 					printf("the first command is: %s\n", p1);
 					printf("the second command is: %s\n", p2);
 					
 					processPipe(p1, p2);
+					free(p1);
+					free(p2);
 				}
 				//if no pipe, run single command
 				else if(status == -1){
