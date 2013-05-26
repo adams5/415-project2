@@ -22,4 +22,6 @@ int checkPipe(char* input, int legth);
 
 void processPipe();
 
+int processCommand(char* command);
+
 #endif

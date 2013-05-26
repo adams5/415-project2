@@ -1,5 +1,9 @@
 #include "shellFunc.h"
+#define MAX_TOKENS 256
+
 pid_t groupID;
+char** tokens;
+
 
 int checkPipe(char input[], int length){
 	for(int i=0; i < length; i++){
@@ -180,7 +184,23 @@ int checkBG(char** command){
 	
 }
 
-int processCommand(char** command){}
+int processCommand(char* command){
+	tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
+	int numTokens = 0;							//value to hold how many tokens in input
+	int status;
+	
+	numTokens = getTokens(command, tokens);	//create array of tokens
+	status = checkBG(tokens);				//check for & for backgrounding a process
+	checkRed(tokens, 0);					//check for and handle redirection
+
+	//if(status){
+		
+	status = execvp(tokens[0], tokens);
+	
+	//}
+	free(tokens);
+	return(0);
+}
 
 int execute(char** command, int nTokens, int bg){
 	

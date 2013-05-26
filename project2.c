@@ -3,7 +3,6 @@
 #include "shellFunc.h"
 
 #define MAX_BYTES 1024
-#define MAX_TOKENS 256
 
 
 ///need to prevent carriage return for prompt	--DONE
@@ -21,8 +20,8 @@ int main(int argc, char* args[]){
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
-		tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
-		int numTokens = 0;							//value to hold how many tokens in input
+		//tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
+		//int numTokens = 0;							//value to hold how many tokens in input
 		int status = 0;
 		
 		//read input from command line
@@ -58,10 +57,11 @@ int main(int argc, char* args[]){
 				}
 				//if no pipe, run single command
 				else if(status == -1){
-					numTokens = getTokens(input, tokens);	//create array of tokens
-					status = checkBG(tokens);				//check for & for backgrounding a process
-					checkRed(tokens, 0);					//check for and handle redirection
-					execute(tokens, 0, status);			//run single command
+					//numTokens = getTokens(input, tokens);	//create array of tokens
+					//status = checkBG(tokens);				//check for & for backgrounding a process
+					//checkRed(tokens, 0);					//check for and handle redirection
+					//execute(tokens, 0, status);			//run single command
+					processCommand(input);
 				}
 			}
 			//parent
@@ -91,7 +91,6 @@ int main(int argc, char* args[]){
 				processPipe(p1, p2);
 			}
 		}
-		free(tokens);
 	}
 	
 	
