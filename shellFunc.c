@@ -151,7 +151,8 @@ int checkBG(char** command){
 	
 	if (arg[i-1] == '&'){
 		//background process
-		arg[i-1] = '\0';
+		printf("found &\n");
+		arg[i-1] = NULL;
 		return 1;	
 	}
 	else{
@@ -171,6 +172,8 @@ int execute(char** command, int nTokens, int bg){
 		char** bgProc;
 		bgProc[0] = "bg";
 		bgProc[1] = getpgid();
+		
+		printf("Executing: %s\n", *bgProc);
 		execvp(bgProc[0], bgProc);
 		printf("Running: %s\n", *command);
 	}

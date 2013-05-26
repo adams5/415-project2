@@ -27,14 +27,14 @@ int main(int argc, char* args[]){
 		
 		//read input from command line
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
-		printf("bytes read: %i\n", status);
+		//printf("bytes read: %i\n", status);
 		
 		//Check if read failed
 		if(status == -1){								//if failed to read, output error
 			perror("READ ERROR");
 		}
 		else if(status <= 1){
-			printf("no input\n");
+			//printf("no input\n");
 			continue;
 		}
 		else{
@@ -51,10 +51,12 @@ int main(int argc, char* args[]){
 				if(pid == 0){
 					execute(tokens, 0, status);			//run single command
 				}
-				else{
+				else if(pid > 0){
 					if(status == 1)
 						waitpid(pid, &status, 0);
 				}
+				else
+					printf("Error: Could not create child\n");
 			}
 			else{
 				input[status] = '\0';
