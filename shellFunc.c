@@ -76,35 +76,6 @@ void processPipe(char* process1, char* process2){
 }
 
 void checkRed(char** tokens, int proc){
-	//if(tempTok[0] == '|'){
-		//char* process1 = calloc(pos, sizeof(char*));
-		//char* process2 = calloc(20, sizeof(char*));
-		
-		//process1 = tokens[0];
-		//process1[pos] = NULL;
-		//process2 = tokens[pos +1];
-
-
-		////get the first process string
-		///*for(int i = 0; i < pos; i++){
-			//printf("pos: %i\n", pos);
-			//process1[i] = tokens[pos-1];
-		//}
-			
-		//printf("This is process 1 %s\n", process1);
-		//for(int i = pos; i < sizeof(tokens); i++)
-			//process2[i] = tokens[pos-1];	
-		//printf("This is process 2 %s\n", process2);	
-			//*/
-		//printf("This is a pipe\n");
-////<<<<<<< HEAD
-		////int new_out = open("tempFile", O_WRONLY | O_CREAT, 0644);
-		////int new_in = new_out;
-//////=======
-		//processPipe(process1, process2);
-		/////do something
-////>>>>>>> 8419ebea7f4ee04b9500a555546630ca0041c9d0
-	//}
 	int i = 0;
 	while(tokens[i] != NULL){
 		
@@ -192,31 +163,14 @@ int execute(char** command, int nTokens, int bg){
 	int status;
 	pid_t pid = -1;
 	
-	
-	//Fork and execute comman line
-	//if((pid = fork()) == 0){				//in child process
-		////check for pipes and redirection
-		//int j;
-		//for(j = 0; j < nTokens-1; j++){
-			//checkTok(command[j], j, command);
-			//printf("Token at %i is %s\n", j, command[j]);
-		//}
-		
-		status =  execvp(command[0], command);
-		
-		//exit(status);
-	//}
-	//else if(pid > 0){						//in parent process
-		//if(bg == 1){
-			////not sure what to do here maybe
-			//printf("Running: %s\n", *command);
-		//}
-		//else{
-			//status = waitpid(pid, &status, 0);
-			//return status;
-		//}
-	//}
-	//else 									//ERROR
-		//perror("Fork Error");
-
+			
+	status =  execvp(command[0], command);
+	if (bg ==1){
+		char** bgProc;
+		bgProc[0] = "bg";
+		bgProc[1] = getpgid();
+		execvp(bgProc[0], bgProc);
+		printf("Running: %s\n", *command);
+	}
+	return status;
 }
