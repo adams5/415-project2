@@ -47,16 +47,16 @@ void processPipe(char* process1, char* process2){
 		//parse arguments
 		
 		//test with process 1 being "ls -l"
-		char *process1Args[] = {"ls", "-l",NULL};	
-		execvp("ls",process1Args);
+		//char *process1Args[] = {"ls", "-l",NULL};	
+		//execvp("ls",process1Args);
 		
-		
-		
+		processCommand(process1);
+		close(pipeFD[1]);				//close the write end of the pipe	
+		_exit(0);
 	}	
 	//parent
 	else{
 		waitpid(pid);
-		close(pipeFD[1]);				//close the write end of the pipe	
 		setpgid(getpid(),groupID); //set the parent's group id
 	}	
 
@@ -76,7 +76,6 @@ void processPipe(char* process1, char* process2){
 		close(pipeFD[1]);	 //close the read end of the pipe
 		if(pipeFD[0] !=  0)		//if the pipeFD[0] is not already stdin
 			dup2(pipeFD[0],0); //dup the pipeFD[0] to stdin
-		close(pipeFD[0]); //close the write end of the pipe	
 		
 		//handle redirection if there's any
 		
@@ -85,8 +84,12 @@ void processPipe(char* process1, char* process2){
 		
 		
 		//test with process 2 being "ws -l"
-		char *process2Args[] = {"wc", "-l",NULL};
-		execvp("wc",process2Args);
+		//char *process2Args[] = {"wc", "-l",NULL};
+		//execvp("wc",process2Args);
+		
+		processCommand(process2);
+		close(pipeFD[0]); //close the write end of the pipe	
+		_exit(0);
 	}
 	//parent
 	else{
@@ -193,11 +196,15 @@ int processCommand(char* command){
 	status = checkBG(tokens);				//check for & for backgrounding a process
 	checkRed(tokens, 0);					//check for and handle redirection
 
-	//if(status){
+	if(status){
+		char* bgcall[]={"bg", getpgid()};
+		execvp(bgcall[0], bgcall);
+	}
+		
 		
 	status = execvp(tokens[0], tokens);
 	
-	//}
+	
 	free(tokens);
 	return(0);
 }

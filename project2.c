@@ -38,8 +38,6 @@ int main(int argc, char* args[]){
 		}
 		else{
 			input[status] = '\0';	//else, add null terminating char to input			
-				
-			
 			pid_t pid = fork();
 			
 			//child
@@ -49,10 +47,21 @@ int main(int argc, char* args[]){
 				
 				//if there's a pipe
 				if(status > -1){
+					//debugging
+					printf("there's a pipe\n");
+					printf("the command line is: %s\n", input);
+					
 					input[status] = '\0';
+					
+					printf("the command line is: %s\n", input[0]);
 					
 					char* p1 =  input[0];
 					char* p2 = input[status +1];
+					
+					//debugging
+					printf("the first command is: %s\n", p1);
+					printf("the second command is: %s\n", p2);
+					
 					processPipe(p1, p2);
 				}
 				//if no pipe, run single command
@@ -63,6 +72,7 @@ int main(int argc, char* args[]){
 					//execute(tokens, 0, status);			//run single command
 					processCommand(input);
 				}
+				_exit(0);
 			}
 			//parent
 			else if(pid > 0){
