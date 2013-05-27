@@ -3,9 +3,8 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <fcntl.h>
 #include "tokenizer.h"
-
+#include "global.h"
 
 TOKENIZER *tokenizer;
 char* tok;
