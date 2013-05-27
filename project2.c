@@ -4,6 +4,8 @@
 #include "global.h"
 #include "jobs.h"
 
+
+
 #define MAX_BYTES 1024
 
 
@@ -19,6 +21,12 @@ int main(int argc, char* args[]){
 	char* shname = "kinda-sh";						//initialize command line prompt string
 	int length;
 	pid_t pid;
+
+	memset (&sigAction, '\0', sizeof(sigAction));
+	sigAction.sa_handler = signal_handler;
+	
+	sigAction.sa_flags = SA_SIGINFO;
+	
 	//setup the shared memory for lastJobCmd
 	//shmid = shmget(125678, 1024, 0644);
    // lastJobCmd = shmat(shmid, (void *)0, 0);
@@ -28,13 +36,16 @@ int main(int argc, char* args[]){
 		//printf("shellPID: %i\n",shellPID);
 	//}
 	while(1){
+		
+		sigaction (SIGINT, &sigAction, NULL);
+		sigaction(SIGTTOU, &sigAction, NULL);
+		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
+		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z
+		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+			
+		
+		//print any queued messages from background processes here
 
-		signal(SIGINT,signal_handler);
-		signal(SIGTTOU,signal_handler);
-		signal(SIGTERM,signal_handler);
-		signal(SIGTSTP,signal_handler);
-		signal(SIGCONT,signal_handler);
-		//signal(SIGCHLD,signal_handler);
 
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
@@ -127,6 +138,7 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
+				lastStoppedJob = pid;
 				if(status == 1)
 					setpgid(pid, pid);
 					waitpid(pid, &status, 0);
@@ -135,22 +147,5 @@ int main(int argc, char* args[]){
 				printf("Error: Could not create child\n");
 
 		}
-			/*
-				if(status == -1){
-					pid_t pid;
-					pid = fork();
-					if(pid == 0){
-
-					}
-
-				else{
-					input[status] = '\0';
-
-					char* p1 = input[0];
-					char* p2 = input[status +1];
-					processPipe(p1, p2);
-					*/
-
-
 	}
 }

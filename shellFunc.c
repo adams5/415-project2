@@ -16,7 +16,7 @@ int checkPipe(char input[], int length){
 }
 
 void processPipe(char* process1, char* process2){
-	groupID = getpgid();
+	groupID = getpid();
 
 
 	//printf("Process pipe entered\n");
@@ -200,9 +200,7 @@ int processCommand(char* command){
 	checkRed(tokens, 0);					//check for and handle redirection
     //if an & was found send the process to the background
 	if(status){
-		//char* bgcall[]={"bg", getpgid()};
-		//status = execvp(bgcall[0], bgcall);
-		tcsetpgrp(0, shellPID);
+		//tcsetpgrp(0, shellPID);
 	}
 	else
 		status = execvp(tokens[0], tokens);
