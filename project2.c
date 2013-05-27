@@ -1,6 +1,8 @@
-#include <signal.h>
-//#include "tokenizer.h"
+#include "shell_signals.h"
 #include "shellFunc.h"
+#include "utils.h"
+#include "global.h"
+#include "jobs.h"
 
 #define MAX_BYTES 1024
 
@@ -16,19 +18,35 @@ int main(int argc, char* args[]){
 	char** tokens;									//declare array of tokens
 	char* shname = "kinda-sh";						//initialize command line prompt string
 	int length;
-	
+	pid_t pid;
+	//setup the shared memory for lastJobCmd
+	//shmid = shmget(125678, 1024, 0644);
+   // lastJobCmd = shmat(shmid, (void *)0, 0);
+
+	//if(pid != 0){
+		shellPID =  getpgid(0);
+		//printf("shellPID: %i\n",shellPID);
+	//}
 	while(1){
+
+		signal(SIGINT,signal_handler);
+		signal(SIGTTOU,signal_handler);
+		signal(SIGTERM,signal_handler);
+		signal(SIGTSTP,signal_handler);
+		signal(SIGCONT,signal_handler);
+		//signal(SIGCHLD,signal_handler);
+
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
 		//tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
 		//int numTokens = 0;							//value to hold how many tokens in input
 		int status = 0;
-		
+
 		//read input from command line
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
 		//printf("bytes read: %i\n", status);
-		
+
 		//Check if read failed
 		if(status == -1){								//if failed to read, output error
 			perror("READ ERROR");
@@ -38,15 +56,33 @@ int main(int argc, char* args[]){
 			continue;
 		}
 		else{
-			input[status] = '\0';	//else, add null terminating char to input	
-			length = status;		
-			pid_t pid = fork();
-			
+			input[status] = '\0';	//else, add null terminating char to input
+			length = status;
+
+			//check for fg, bg, help or exit
+			if(cmp(input,"exit\n")){
+				return 0;
+			}
+			else if(cmp(input,"help\n")){
+				printf("help\n");
+				continue;
+			}
+			else if(cmp(input,"bg\n")){
+				bg();
+				continue;
+			}
+			else if(cmp(input,"fg\n")){
+				fg();
+				continue;
+			}
+            lastJobCmd = input;
+			pid = fork();
+
 			//child
 			if(pid==0){
 				//check for a pipe
 				status = checkPipe(input, status);			//check for pipe in command line input
-				
+
 				//if there's a pipe
 				if(status > -1){
 					char p1[status];
@@ -54,24 +90,24 @@ int main(int argc, char* args[]){
 					//debugging
 					printf("there's a pipe\n");
 					printf("the command line is: %s\n", input);
-					
-					
+
+
 					//printf("the command line is: %s\n", input[0]);
-					
+
 					//char* p1 =  input[0];
 					//char* p2 = input[status +1];
 					input[status] = '\0';
 					printf("set pipe to null\n", input);
-					
+
 					memcpy(p1, &input[0], status);
 					printf("copied first command to p1\n", input);
 					memcpy(p2, &input[status +1], length - status);
 					printf("copied second command to p2\n", input);
-					
+
 					//debugging
 					printf("the first command is: %s\n", p1);
 					printf("the second command is: %s\n", p2);
-					
+
 					processPipe(p1, p2);
 					free(p1);
 					free(p2);
@@ -82,6 +118,9 @@ int main(int argc, char* args[]){
 					//status = checkBG(tokens);				//check for & for backgrounding a process
 					//checkRed(tokens, 0);					//check for and handle redirection
 					//execute(tokens, 0, status);			//run single command
+					//lastJobCmd = input;
+					//printf("lastJobCmd: %s\n", lastJobCmd);
+					//printf("input: %s\n",input);
 					processCommand(input);
 				}
 				_exit(0);
@@ -94,30 +133,24 @@ int main(int argc, char* args[]){
 			}
 			else
 				printf("Error: Could not create child\n");
-							
-		}
-			
-			
-			if(status == -1){							
-				pid_t pid;
-				pid = fork();
-				if(pid == 0){
-					
-				}
 
-			else{
-				input[status] = '\0';
-				
-				char* p1 = input[0];
-				char* p2 = input[status +1];
-				processPipe(p1, p2);
-			}
 		}
+			/*
+				if(status == -1){
+					pid_t pid;
+					pid = fork();
+					if(pid == 0){
+
+					}
+
+				else{
+					input[status] = '\0';
+
+					char* p1 = input[0];
+					char* p2 = input[status +1];
+					processPipe(p1, p2);
+					*/
+
+
 	}
-	
-	
-	
-	
-	
-	
 }
