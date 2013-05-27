@@ -87,7 +87,7 @@ int main(int argc, char* args[]){
 				fg();
 				continue;
 			}
-            lastJobCmd = input;
+           // lastJobCmd = input;
 			pid = fork();
 
 			//child
@@ -139,7 +139,7 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				lastStoppedJob = pid;
+				//last = pid;
 				if(status == 1)
 					setpgid(pid, pid);
 					waitpid(pid, &status, 0);

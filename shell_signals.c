@@ -10,20 +10,27 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 {	
 	//if a process chages state this signal will be triggered
 	if(signal == SIGCHLD){
+		pid_t tmpPGID = getpgid(siginfo->si_pid);
 		printf("Shell PID: %ld\n",shellPID);
 		
-		printf("PID: %ld changed state to %i\n",(long)siginfo->si_pid, siginfo->si_code);
+		printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, tmpPGID, siginfo->si_code);
 		//detect the status of the process and generate a message
 		
 		//if finished
 		if(siginfo->si_code == CLD_EXITED)
-			printf("Finished: %s\n", lastJobCmd);
+			printf("Finished: %s\n", searchProc(tmpPGID));
 		//if stopped
-		else if(siginfo->si_code == CLD_STOPPED)
-			printf("Stopped: %s\n", lastJobCmd);
+		else if(siginfo->si_code == CLD_STOPPED){
+			
+			//let the user know what process stopped
+			printf("Stopped: %s\n", searchProc(tmpPGID));
+			
+			//set the most recent stopped BG process
+			setLastStoppedBG(siginfo->si_pid);
+		}
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
-			printf("Continuing: %s\n", lastJobCmd);
+			printf("Continuing: %s\n", searchProc(tmpPGID));
 		else
 			printf("Child had some other exit status\n");
 		
@@ -53,14 +60,15 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 	}
 	//CTRL-Z
 	else if(signal == SIGTSTP){
+
+		
 		if(getpid()==shellPID){
 			printf("\nshell recieved CTRL-Z\n");
 		}
 		else{
 			printf("\nNon-shell recieved CTRL-Z, switching to shell\n");
-			tcsetpgrp(0, shellPID);
-			tcsetpgrp(1, shellPID);
-			tcsetpgrp(2, shellPID);
+			//switch the terminal control back to the shell
+			switchToShell();
 		}
 	}
 }
