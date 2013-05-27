@@ -14,7 +14,8 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 {	
 	//if a process chages state this signal will be triggered
 	if(signal == SIGCHLD){
-		pid_t tmpPGID = getpgid(siginfo->si_pid);
+		HPROC* tempProc = searchProc(siginfo->si_pid);
+		pid_t tmpPGID = tempProc->pgid;
 		printf("Shell PID: %ld\n",(long)shellPID);
 		
 		printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, siginfo->si_code);
@@ -22,19 +23,19 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		
 		//if finished
 		if(siginfo->si_code == CLD_EXITED)
-			printf("Finished: %s\n", searchProc(tmpPGID));
+			printf("Finished: %s\n", searchProc(tmpPGID)->command);
 		//if stopped
 		else if(siginfo->si_code == CLD_STOPPED){
 			
 			//let the user know what process stopped
-			printf("Stopped: %s\n", searchProc(tmpPGID));
+			printf("Stopped: %s\n", searchProc(tmpPGID)->command);
 			
 			//set the most recent stopped BG process
 			setLastStoppedBG(siginfo->si_pid);
 		}
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
-			printf("Continuing: %s\n", searchProc(tmpPGID));
+			printf("Continuing: %s\n", searchProc(tmpPGID)->command);
 		else
 			printf("Child had some other exit status\n");
 		

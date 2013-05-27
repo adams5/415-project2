@@ -5,6 +5,7 @@
 #include <signal.h>
 
 typedef struct HProc{
+	pid_t pid;
 	pid_t pgid;
 	char* command;
 	struct HProc *next;
@@ -14,11 +15,11 @@ int hash_init();
 
 int free_hash();
 
-int insertProc(pid_t pgid, char* command);
+int insertProc(pid_t pid, pid_t pgid, char* command);
 
 int removeProc(pid_t pgid);
 
-char* searchProc(pid_t key);
+HPROC* searchProc(pid_t key);
 
 char* toString();
 

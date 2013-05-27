@@ -144,9 +144,9 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				insertProc(pid, input);
-				printf("Running: %s\n", searchProc(pid));
 				setpgid(pid, pid);
+				insertProc(pid, getpgid(pid), input);
+				printf("Running: %s\n", searchProc(pid)->command);
 				waitpid(pid, &status, 0);
 			}
 			else
@@ -154,4 +154,5 @@ int main(int argc, char* args[]){
 
 		}
 	}
+	free_hash();
 }

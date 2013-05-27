@@ -40,12 +40,13 @@ int free_hash(){
 		return -1;
 }
 
-int insertProc(pid_t pgid, char* command){
+int insertProc(pid_t pid, pid_t pgid, char* command){
 	printf("pgid is: %i and command is: %s\n", pgid, command);
 	
 	HPROC *new;
 	if((new = malloc(sizeof (struct HProc))) != NULL){
 		HPROC *tempProc = hp[pgid%HASH_SIZE];
+		new->pid = pid;
 		new->pgid = pgid;
 		new->command = command;
 		new->next = tempProc;
@@ -83,13 +84,13 @@ int removeProc(pid_t pgid){
 	return -1;
 }
 
-char* searchProc(pid_t key){
+HPROC* searchProc(pid_t key){
 	int i = key%HASH_SIZE;
 	HPROC* tempProc = hp[i];	
 	
 	while(tempProc != NULL){
-		if(tempProc->pgid == key)
-			return tempProc->command;
+		if(tempProc->pid == key)
+			return tempProc;
 		else
 			tempProc = tempProc->next;
 		
