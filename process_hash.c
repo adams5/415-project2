@@ -3,11 +3,17 @@
 
 #define HASH_SIZE 10
 
-HPROC** hp;
+struct HProc** hp;
 
 int hash_init(){
-	if((hp = calloc(HASH_SIZE, sizeof *hp)) != NULL)
+	if((hp = calloc(HASH_SIZE, sizeof (struct HProc))) != NULL){
+		int i = 0;
+		while(i < HASH_SIZE){
+			hp[i] = NULL;
+			i++;
+		}
 		return 1;
+	}
 	else
 		return -1;
 }
@@ -34,11 +40,23 @@ int free_hash(){
 }
 
 int insertProc(pid_t pgid, char* command){
+	printf("pgid is: %i and command is: %s\n", pgid, command);
+	
 	HPROC *new;
-	if((new = malloc(sizeof *hp)) != NULL){
+	if((new = malloc(sizeof (struct HProc))) != NULL){
 		HPROC *tempProc = hp[pgid%HASH_SIZE];
+		new->pgid = pgid;
+		new->command = command;
 		new->next = tempProc;
 		hp[pgid%HASH_SIZE] = new;
+		if(new->next == NULL)
+			printf("new proc pgid is: %i next proc pgid is: NULL stored in index: %i\n", new->pgid,
+						pgid%HASH_SIZE);
+		else
+			printf("new proc pgid is: %i next proc pgid is: %i stored in index: %i\n", new->pgid,
+						new->next->pgid, pgid%HASH_SIZE);
+						
+		printf("head of hash table at index: %i is command: %s\n", pgid%HASH_SIZE, hp[pgid%HASH_SIZE]->command);
 		return 1;
 	}
 	else return -1;
@@ -85,7 +103,7 @@ char* toString(){
 		HPROC* tempProc = hp[i];
 		
 		while(tempProc != NULL){
-			tempProc = tempProc.next;
+			tempProc = tempProc->next;
 			
 		}
 		i++;

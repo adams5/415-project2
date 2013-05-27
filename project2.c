@@ -143,9 +143,10 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				insertProc(pid, input);
-				printf("Running: %s\n", searchProc(pid));
 				setpgid(pid, pid);
+				insertProc(pid, input);
+				printf("will search for %i\n", pid);
+				printf("Running: %s\n", searchProc(pid));
 				waitpid(pid, &status, 0);
 			}
 			else

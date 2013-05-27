@@ -14,7 +14,7 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		pid_t tmpPGID = getpgid(siginfo->si_pid);
 		printf("Shell PID: %ld\n",shellPID);
 		
-		printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, tmpPGID, siginfo->si_code);
+		printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, siginfo->si_code);
 		//detect the status of the process and generate a message
 		
 		//if finished

@@ -1,6 +1,7 @@
 #ifndef __PROCESS_HASH_H__
 #define __PROCESS_HASH_H__
 
+#include <stdlib.h>
 #include <signal.h>
 
 typedef struct HProc{
@@ -19,7 +20,7 @@ int removeProc(pid_t pgid);
 
 char* searchProc(pid_t key);
 
-
+char* toString();
 
 
 
