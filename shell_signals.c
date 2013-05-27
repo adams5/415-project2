@@ -7,9 +7,11 @@ int status;
 
 
 void signal_handler(int signal, siginfo_t *siginfo, void *context)
-{
+{	
 	//if a process chages state this signal will be triggered
 	if(signal == SIGCHLD){
+		printf("Shell PID: %ld\n",shellPID);
+		
 		printf("PID: %ld changed state to %i\n",(long)siginfo->si_pid, siginfo->si_code);
 		//detect the status of the process and generate a message
 		
@@ -24,11 +26,6 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 			printf("Continuing: %s\n", lastJobCmd);
 		else
 			printf("Child had some other exit status\n");
-		
-			
-		//else if finished
-		
-		//else if stopped
 		
 		
 		//if the process is in the background, queue  the  message
@@ -56,15 +53,14 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 	}
 	//CTRL-Z
 	else if(signal == SIGTSTP){
-		//if(getpgid(0)==shellPID){
-			printf("\nStopped: %s", lastJobCmd);
-		//}
-		////else{
-		//	printf("Foreground recieved CTRL-Z\n");
-		//}
+		if(getpid()==shellPID){
+			printf("\nshell recieved CTRL-Z\n");
+		}
+		else{
+			printf("\nNon-shell recieved CTRL-Z, switching to shell\n");
+			tcsetpgrp(0, shellPID);
+			tcsetpgrp(1, shellPID);
+			tcsetpgrp(2, shellPID);
+		}
 	}
-	else if(signal == SIGCONT){
-		printf("Recieved SIGCONT");
-	}
-
 }

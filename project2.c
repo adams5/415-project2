@@ -20,25 +20,26 @@ int main(int argc, char* args[]){
 	char** tokens;									//declare array of tokens
 	char* shname = "kinda-sh";						//initialize command line prompt string
 	int length;
-	pid_t pid;
+	pid_t pid = -1;
 
-	memset (&sigAction, '\0', sizeof(sigAction));
-	sigAction.sa_handler = signal_handler;
+	memset (&sigAction, '\0', sizeof(sigAction)); //allocate memory for the  signal action struct
 	
-	sigAction.sa_flags = SA_SIGINFO;
+	sigAction.sa_handler = signal_handler; //set the handler for the signal action struct
 	
-	//setup the shared memory for lastJobCmd
-	//shmid = shmget(125678, 1024, 0644);
-   // lastJobCmd = shmat(shmid, (void *)0, 0);
+	sigAction.sa_flags = SA_SIGINFO;		//flag that we want to collect information about the process when a signal is caught
 
-	//if(pid != 0){
-		shellPID =  getpgid(0);
-		//printf("shellPID: %i\n",shellPID);
-	//}
+	if(pid != 0){
+		shellPID =  getpid();
+		printf("shellPID: %i\n",shellPID);
+	}
 	while(1){
 		
-		sigaction (SIGINT, &sigAction, NULL);
-		sigaction(SIGTTOU, &sigAction, NULL);
+		// the following two signal might be needed for bg & fg to work correctly
+		
+		//sigaction (SIGINT, &sigAction, NULL);
+		//sigaction(SIGTTOU, &sigAction, NULL);
+		
+		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we nee
 		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z
 		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
