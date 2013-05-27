@@ -1,15 +1,22 @@
+#ifndef __UTILS_H__
+#define __UTILS_H__
+
+#include <signal.h>
+
 
 typedef struct BGProc{
-	pid = 0;
-	pgid = 0;
-	BGProc next = NULL;
+	pid_t pid;
+	pid_t pgid;
+	struct BGProc* next;
 }bgproc;
 
 typedef struct FGProc{
-	pid = 0;
-	pgid = 0;
-	FGProc next = NULL;
+	pid_t pid;
+	pid_t pgid;
+	struct FGProc* next;
 }fgproc;
 
 
 int cmp(char *s1, char *s2);
+
+#endif

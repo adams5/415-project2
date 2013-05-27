@@ -15,11 +15,14 @@ tokenizer.o: tokenizer.c
 shell_signals.o: shell_signals.c
 	gcc -o shell_signals.o -c shell_signals.c -std=gnu99 -g
 
-utils.o: utils.c
+utils.o: utils.c utils.h
 	gcc -o utils.o -c utils.c -std=gnu99  -g
 
 jobs.o: jobs.c
 	gcc -o jobs.o -c jobs.c -std=gnu99  -g
+
+process_hash.o: process_hash.c process_hash.h
+	gcc -o process_hash.o -c process_hash.c -std=gnu99 -g
 
 clean:
 	rm *.o project2
