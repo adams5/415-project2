@@ -13,7 +13,9 @@
 ///check into free(tok)							--DONE, WASN'T NEEDED. ACTUALLY MADE IT WORSE
 ///handle '\n' attached to string arg			--DONE, TAKEN CARE OF BY TOKENIZER
 ///possibly make token array non-global			--DONE
-
+///need to check the wait commands in project2 
+///	and shellFunc to make sure being used 
+///	correctly after signalling added
 
 
 int main(int argc, char* args[]){
@@ -27,6 +29,8 @@ int main(int argc, char* args[]){
 	sigAction.sa_handler = signal_handler; //set the handler for the signal action struct
 	
 	sigAction.sa_flags = SA_SIGINFO;		//flag that we want to collect information about the process when a signal is caught
+
+	hash_init();							//initialize hash table for processes
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -121,8 +125,8 @@ int main(int argc, char* args[]){
 					printf("the second command is: %s\n", p2);
 
 					processPipe(p1, p2);
-					free(p1);
-					free(p2);
+					//free(p1);
+					//free(p2);
 				}
 				//if no pipe, run single command
 				else if(status == -1){

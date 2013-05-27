@@ -2,10 +2,10 @@
 
 #define HASH_SIZE 10
 
-HProc** hp;
+HPROC** hp;
 
 int hash_init(){
-	if((hp = calloc(HASH_SIZE, sizeof HProc)) != NULL)
+	if((hp = calloc(HASH_SIZE, sizeof *HPROC)) != NULL)
 		return 1;
 	else
 		return -1;
@@ -14,7 +14,7 @@ int hash_init(){
 int free_hash(){
 	
 	if(hp != NULL){
-		HProc* tempProc = hp;
+		HPROC* tempProc;
 	
 		int i = 0;
 		while(i<HASH_SIZE){
@@ -33,8 +33,8 @@ int free_hash(){
 }
 
 int insertProc(pid_t pgid, char* command){
-	if((HProc *new = malloc(sizeof *HProc)) != NULL){
-		HProc *tempProc = hp[pgid%HASH_SIZE];
+	if((HPROC *new = malloc(sizeof *HPROC)) != NULL){
+		HPROC *tempProc = hp[pgid%HASH_SIZE];
 		new->next = tempProc;
 		hp[pgid%HASH_SIZE] = new;
 		return 1;
@@ -42,10 +42,10 @@ int insertProc(pid_t pgid, char* command){
 	else return -1
 }
 
-int removeProc(pid_t pid){
+int removeProc(pid_t pgid){
 	int i = (int)pid%HASH_SIZE;
-	HProc *parent = hp[i];
-	HProc *tempProc = hp[i];
+	HPROC *parent = hp[i];
+	HPROC *tempProc = hp[i];
 	
 	
 	while(tempProc != NULL){
@@ -63,7 +63,7 @@ int removeProc(pid_t pid){
 }
 
 char* searchProc(pid_t key){
-	HProc* tempProc = hp;	
+	HPROC* tempProc = hp;	
 	int i = key%HASH_SIZE;
 	
 	while(tempProc[i] != NULL){

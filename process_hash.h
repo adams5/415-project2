@@ -3,22 +3,21 @@
 
 #include <signal.h>
 
-struct HProc{
-	pid = 0;
-	pgid = 0;
+typedef struct HProc{
+	pid_t pgid;
 	char* command;
-	HProc next = NULL;
-};
+	struct HProc *next;
+}HPROC;
 
-int init_hash();
+int hash_init();
 
 int free_hash();
 
 int insertProc(pid_t pgid, char* command);
 
-int removeProc(pid_t pid);
+int removeProc(pid_t pgid);
 
-char* searchProc(pid_t key, void*);
+char* searchProc(pid_t key);
 
 
 
