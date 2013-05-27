@@ -1,5 +1,6 @@
 #include "shell_signals.h"
 #include "global.h"
+#include "process_hash.h"
 #include <unistd.h>
 #include <signal.h>
 
