@@ -3,7 +3,7 @@
 #include "utils.h"
 #include "global.h"
 #include "jobs.h"
-
+#include <sys/wait.h>
 
 
 #define MAX_BYTES 1024
@@ -23,6 +23,7 @@ int main(int argc, char* args[]){
 	char* shname = "kinda-sh";						//initialize command line prompt string
 	int length;
 	pid_t pid = -1;
+	 
 
 	memset (&sigAction, '\0', sizeof(sigAction)); //allocate memory for the  signal action struct
 	
@@ -143,10 +144,9 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				setpgid(pid, pid);
 				insertProc(pid, input);
-				printf("will search for %i\n", pid);
 				printf("Running: %s\n", searchProc(pid));
+				setpgid(pid, pid);
 				waitpid(pid, &status, 0);
 			}
 			else

@@ -1,5 +1,8 @@
 #include "jobs.h"
 #include "global.h"
+#include "process_hash.h"
+#include <stdio.h>
+#include <unistd.h>
 
 void bg(){	
 	
@@ -40,8 +43,13 @@ void bringLastBGtoFG(){
 }
 
 //switch the terminal control back to the shell
-void switchToShell(){
+void sendShellToFG(){
 	//tcsetpgrp(0, shellPID);
 	//tcsetpgrp(1, shellPID);	
 	//tcsetpgrp(2, shellPID);
+}
+
+void sendToBG(pid_t pid){
+	setLastBG(pid);
+	sendShellToFG();
 }

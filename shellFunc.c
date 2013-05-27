@@ -1,11 +1,13 @@
 #include "shellFunc.h"
 #include "global.h"
+#include <sys/wait.h>
+#include "jobs.h"
 
 #define MAX_TOKENS 256
 
 //pid_t groupID;
 char** tokens;
-
+int status;
 
 int checkPipe(char input[], int length){
 	for(int i=0; i < length; i++){
@@ -58,7 +60,7 @@ void processPipe(char* process1, char* process2){
 	}
 	//parent
 	else{
-		waitpid(pid);
+		waitpid(pid,&status,0);
 		setpgid(getpid(),groupID); //set the parent's group id
 	}
 
@@ -96,7 +98,7 @@ void processPipe(char* process1, char* process2){
 	//parent
 	else{
 		setpgid(getpid(),groupID); //set the parent's group id
-		waitpid(pid);
+		waitpid(pid,&status,0);
 
 	}
 
@@ -200,7 +202,7 @@ int processCommand(char* command){
 	checkRed(tokens, 0);					//check for and handle redirection
     //if an & was found send the process to the background
 	if(status){
-		//tcsetpgrp(0, shellPID);
+		sendToBG(getpid());
 	}
 	else
 		status = execvp(tokens[0], tokens);

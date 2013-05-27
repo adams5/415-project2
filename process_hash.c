@@ -1,5 +1,6 @@
 #include "process_hash.h"
 #include <unistd.h>
+#include <stdio.h>
 
 #define HASH_SIZE 10
 
