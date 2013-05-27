@@ -77,3 +77,18 @@ char* searchProc(pid_t key){
 	}
 	return NULL;
 }
+
+char* toString(){
+	int i = 0;
+	
+	while(hp[i] != NULL){
+		HPROC* tempProc = hp[i];
+		
+		while(tempProc != NULL){
+			tempProc = tempProc.next;
+			
+		}
+		i++;
+	}
+	
+}
