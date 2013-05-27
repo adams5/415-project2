@@ -1,11 +1,12 @@
 #include "process_hash.h"
+#include <unistd.h>
 
 #define HASH_SIZE 10
 
 HPROC** hp;
 
 int hash_init(){
-	if((hp = calloc(HASH_SIZE, sizeof *HPROC)) != NULL)
+	if((hp = calloc(HASH_SIZE, sizeof *hp)) != NULL)
 		return 1;
 	else
 		return -1;
@@ -33,23 +34,24 @@ int free_hash(){
 }
 
 int insertProc(pid_t pgid, char* command){
-	if((HPROC *new = malloc(sizeof *HPROC)) != NULL){
+	HPROC *new;
+	if((new = malloc(sizeof *hp)) != NULL){
 		HPROC *tempProc = hp[pgid%HASH_SIZE];
 		new->next = tempProc;
 		hp[pgid%HASH_SIZE] = new;
 		return 1;
 	}
-	else return -1
+	else return -1;
 }
 
 int removeProc(pid_t pgid){
-	int i = (int)pid%HASH_SIZE;
+	int i = (int)pgid%HASH_SIZE;
 	HPROC *parent = hp[i];
 	HPROC *tempProc = hp[i];
 	
 	
 	while(tempProc != NULL){
-		if(tempProc->pid == pid){
+		if(tempProc->pgid == pgid){
 			parent->next = tempProc->next;
 			free(tempProc);
 			return 1;
@@ -63,14 +65,14 @@ int removeProc(pid_t pgid){
 }
 
 char* searchProc(pid_t key){
-	HPROC* tempProc = hp;	
 	int i = key%HASH_SIZE;
+	HPROC* tempProc = hp[i];	
 	
-	while(tempProc[i] != NULL){
-		if(tempProc[i]->pid == key)
-			return tempProc[i]->command;
+	while(tempProc != NULL){
+		if(tempProc->pgid == key)
+			return tempProc->command;
 		else
-			tempProc[i] = tempProc[i]->next;
+			tempProc = tempProc->next;
 		
 	}
 	return NULL;
