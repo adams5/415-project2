@@ -1,5 +1,12 @@
 #include "utils.h"
 
+struct BGProc{
+	pid = 0;
+	pgid = 0;
+	BGProc next = NULL;
+};
+
+
 //method to compare to char arrays
 int cmp(char *s1, char *s2)
 {
