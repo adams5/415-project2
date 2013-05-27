@@ -143,7 +143,8 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				//last = pid;
+				insertProc(pid, input);
+				printf("Running: %s\n", searchProc(pid));
 				setpgid(pid, pid);
 				waitpid(pid, &status, 0);
 			}
