@@ -143,10 +143,10 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				//last = pid;
-				if(status == 1)
-					setpgid(pid, pid);
-					waitpid(pid, &status, 0);
+				insertProc(pid, input);
+				printf("Running: %s\n", searchProc(pid));
+				setpgid(pid, pid);
+				waitpid(pid, &status, 0);
 			}
 			else
 				printf("Error: Could not create child\n");
