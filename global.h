@@ -3,14 +3,13 @@
 
 #include <fcntl.h>
 #include <signal.h>
+#include "utils.h"
 
 pid_t groupID;
 pid_t shellPID;
-pid_t lastJob;
-pid_t lastStoppedJob;
-int shmid;
-char *lastJobCmd;
-char *lastStoppedJobCmd;
+bgproc lastBG;
+bgproc lastStoppedBG;
+
 struct sigaction sigAction;
 
 #endif

@@ -6,7 +6,7 @@ void bg(){
 	//add checking to make sure there's a background job
 	
 	//send SIGCONT to the most recently stopped background job, this will resume execution
-	killpg(lastStoppedJob,SIGCONT);
+	killpg(lastStoppedBG.pgid,SIGCONT);
 }
 
 
@@ -14,13 +14,34 @@ void fg(){
 	
 	//add checking to make sure there's a last stopped job
 	
-	printf("%s\n",lastJobCmd);
+	printf("%s\n",searchProc(lastBG.pgid));
 	
 	//bring the most recetly backgrounded job to the foreground
-	tcsetpgrp(0, lastStoppedJob);
-	tcsetpgrp(1, lastStoppedJob);	
-	tcsetpgrp(2, lastStoppedJob);
+	bringLastBGtoFG();
 
 	//send a SIGCONT in case the job is stopped
-	killpg(lastStoppedJob,SIGCONT);
+	killpg(lastBG.pgid,SIGCONT);
+}
+
+void setLastBG(pid_t pid){
+	lastBG.pid = pid;
+	lastBG.pgid = getpgid(pid);
+}
+
+void setLastStoppedBG(pid_t pid){
+	lastStoppedBG.pid = pid;
+	lastStoppedBG.pgid = getpgid(pid);
+}
+
+void bringLastBGtoFG(){
+	//tcsetpgrp(0, lastStoppedJob);
+	//tcsetpgrp(1, lastStoppedJob);	
+	//tcsetpgrp(2, lastStoppedJob);
+}
+
+//switch the terminal control back to the shell
+void switchToShell(){
+	//tcsetpgrp(0, shellPID);
+	//tcsetpgrp(1, shellPID);	
+	//tcsetpgrp(2, shellPID);
 }
