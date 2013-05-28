@@ -34,7 +34,7 @@ int main(int argc, char* args[]){
 	
 
 	hash_init();									//initialize hash table for processes
-	msgqueue_init();								//initialize queue for background messages
+	queue_init();								//initialize queue for background messages
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -55,7 +55,6 @@ int main(int argc, char* args[]){
 		
 		//print any queued messages from background processes here
 
-		removeallmsg();								//output queue status messages
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input

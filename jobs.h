@@ -11,7 +11,7 @@ void setLastBG(pid_t pid);
 void setLastStoppedBG(pid_t pid);
 void bringLastBGtoFG();
 void sendShellToFG();
-void sendToBG(pid_t pid);
+void sendToBG(pid_t pid, char* com);
 void sendToFG(pid_t pid);
 
 #endif

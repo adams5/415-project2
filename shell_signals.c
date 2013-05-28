@@ -22,22 +22,22 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		//if finished
 		if(siginfo->si_code == CLD_EXITED){
-			if(siginfo->si_pid == currentfg.pid)
+			if(siginfo->si_pid == currentfg.pid){
 				printf("\nFinished: %s", searchProc(tmpPGID)->command);
+				
+				//switch TC back to the shell
+				sendShellToFG();
+			}
 			else
 			{
-				char* com = searchProc(tmpPGID)->command;
-				char* stat = "Finished: ";
-				char* merge = malloc(sizeof com + sizeof stat);
-				insertmsg(merge);
-				removeallmsg();
-				free(merge);
+				removeProc(tmpPGID);								//remove procedure from hashtable
+				printf("Finished: ");
+				//char* merge = malloc(sizeof com + sizeof stat);
+				bgproc currentproc;									//create temp proc struct
+				remqueue(siginfo->si_pid, &currentproc);			//remove proc from queue
+				printf("%s\n", currentproc.command);
 			}
 			
-			///need to add redirection of output if in background
-			
-			//switch TC back to the shell
-			sendShellToFG();
 		}
 		//if stopped
 		else if(siginfo->si_code == CLD_STOPPED){

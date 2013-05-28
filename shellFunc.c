@@ -209,7 +209,7 @@ int processCommand(char* command){
     //if an & was found send the process to the background
 	if(status == 1){
 		printf("sending process to bg\n");
-		sendToBG(getpid());
+		sendToBG(getpid(), command);
 	}
 	//else send it to the foreground
 	else{

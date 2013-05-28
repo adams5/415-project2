@@ -20,10 +20,10 @@ int cmp(char *s1, char *s2)
     return 1; // the same
 }
 
-int msgqueue_init(){
-	if((long)(msgqueue = calloc(MSG_MAX, sizeof(char*))) != -1){
-		mhead = 0;
-		mtail = 0;
+int queue_init(){
+	if((long)(queue = calloc(PROC_MAX, sizeof(qproc))) != -1){
+		qhead = 0;
+		qtail = 0;
 		return 1;
 	}
 	else
@@ -33,53 +33,82 @@ int msgqueue_init(){
 	}
 }
 
-int free_msgqueue(){
-	free(msgqueue);		///not sure what to do here
+int free_queue(){
+	bgproc dproc;
+	while(!qisempty()){dequeue(&dproc);}
+	free(queue);		///not sure what to do here
 	return 1;	
 }
 
-int insertmsg(char* msg){
-	if(!msgisfull()){
-		mhead = (mhead+1)%MSG_MAX;
-		msgqueue[mhead] = msg;
+int enqueue(pid_t pid, pid_t pgid, char* command){
+	if(!qisfull()){
+		bgproc* nproc = malloc(sizeof(bgproc));
+		nproc->pid = pid;
+		nproc->pgid = pgid;
+		nproc->command = command;
+		qhead = (qhead+1)%PROC_MAX;
+		queue[qhead] = nproc;
 		return 1;
 	}
 	else{
-		printf("Message Queue is full, cannot insert message: %s\n", msg);
+		printf("Queue is full, cannot insert background process: %s\n", command);
 		return 0;
 	}
 }
  
-int removemsg(char** msg){
-	if(!msgisempty()){
-		*msg = msgqueue[mtail];
-		mtail = (mtail+1)%MSG_MAX;
+int dequeue(bgproc* dproc){
+	if(!qisempty()){
+		dproc->pid = queue[qtail]->pid;
+		dproc->pgid = queue[qtail]->pgid;
+		dproc->command = queue[qtail]->command;
+		free(queue[qtail]);
+		qtail = (qtail+1)%PROC_MAX;
 		return 1;
 	}
 	else
 	{
 		printf("Message Queue is empty. No messages waiting\n");
-		return 0;
+		return -1;
 	}
 		
 }
 
-void removeallmsg(){
-	while(!msgisempty()){
-		printf("%s\n", msgqueue[mtail++]);
+//void removeallmsg(){
+	//while(!msgisempty()){
+		//printf("%s\n", msgqueue[mtail++]);
+	//}
+//}
+
+int remqueue(pid_t pid, bgproc* dproc){
+	int temptail = qtail;
+	while(queue[temptail]->pid != pid && temptail != qhead){
+		temptail = (temptail+1)%PROC_MAX;
 	}
+	
+	if(queue[temptail]->pid == pid){
+		dproc->pid = queue[temptail]->pid;
+		dproc->pgid = queue[temptail]->pgid;
+		dproc->command = queue[temptail]->command;
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+	
+
 }
 
 
-int msgisempty(){
-	if(mhead==mtail)
+int qisempty(){
+	if(qhead==qtail)
 		return 1;
 	else
 		return 0;
 }
 
-int msgisfull(){
-	if(mhead==(mtail-1))
+int qisfull(){
+	if(qhead==(qtail-1))
 		return 1;
 	else
 		return 0;

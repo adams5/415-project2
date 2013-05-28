@@ -80,8 +80,9 @@ void sendToFG(pid_t pid){
 	//printf("\ntcgetpgrp: %ld\n",(long) tcgetpgrp(0));
 }
 
-void sendToBG(pid_t pid){
-	setLastBG(pid);
+void sendToBG(pid_t pid, char* com){
+	//setLastBG(pid);
+	enqueue(pid, getpgid(pid), com);
 	sendShellToFG();
 	printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
 }
