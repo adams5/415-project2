@@ -155,7 +155,7 @@ int getTokens(char* input, char** tokens){
 	int i = 0;
 	while((tok = get_next_token(tokenizer)) != NULL){
 		tokens[i++] = tok;
-		printf("token is: %s\n", tokens[i-1]);
+		//printf("token is: %s\n", tokens[i-1]);
 	}
 
 	//int j;
@@ -200,19 +200,14 @@ int processCommand(char* command){
 	numTokens = getTokens(command, tokens);	//create array of tokens
 	status = checkBG(tokens);				//check for & for backgrounding a process
 	checkRed(tokens, 0);					//check for and handle redirection
+    
     //if an & was found send the process to the background
 	if(status){
 		sendToBG(getpid());
 	}
 	else
+		sendToFG(getpid());
 		status = execvp(tokens[0], tokens);
-
-	//if(status != -1)
-
-
-	//else
-		//error
-
 
 	free(tokens);
 	return(0);

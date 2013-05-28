@@ -36,19 +36,20 @@ int main(int argc, char* args[]){
 	if(pid != 0){
 		shellPID =  getpid();
 		printf("shellPID: %i\n",shellPID);
+		termCtrlGPID = shellPID;
 	}
 	while(1){
 		
 		// the following two signal might be needed for bg & fg to work correctly
 		
-		//sigaction (SIGINT, &sigAction, NULL);
-		//sigaction(SIGTTOU, &sigAction, NULL);
+		sigaction (SIGINT, &sigAction, NULL);
+		sigaction(SIGTTOU, &sigAction, NULL);
 		
-		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we nee
+		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
 		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z
+		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-			
+		signal(SIGTTOU, SIG_IGN);	
 		
 		//print any queued messages from background processes here
 
@@ -146,7 +147,7 @@ int main(int argc, char* args[]){
 			else if(pid > 0){
 				setpgid(pid, pid);
 				insertProc(pid, getpgid(pid), input);
-				printf("Running: %s\n", searchProc(pid)->command);
+				printf("Running: %s", searchProc(pid)->command);
 				waitpid(pid, &status, 0);
 			}
 			else
