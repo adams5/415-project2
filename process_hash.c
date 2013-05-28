@@ -41,7 +41,7 @@ int free_hash(){
 }
 
 int insertProc(pid_t pid, pid_t pgid, char* command){
-	printf("pgid is: %i and command is: %s\n", pgid, command);
+	//printf("pgid is: %i and command is: %s\n", pgid, command);
 	
 	HPROC *new;
 	if((new = malloc(sizeof (struct HProc))) != NULL){
@@ -51,7 +51,7 @@ int insertProc(pid_t pid, pid_t pgid, char* command){
 		new->command = command;
 		new->next = tempProc;
 		hp[pgid%HASH_SIZE] = new;
-		if(new->next == NULL)
+		/*if(new->next == NULL)
 			printf("new proc pgid is: %i next proc pgid is: NULL stored in index: %i\n", new->pgid,
 						pgid%HASH_SIZE);
 		else
@@ -59,6 +59,7 @@ int insertProc(pid_t pid, pid_t pgid, char* command){
 						new->next->pgid, pgid%HASH_SIZE);
 						
 		printf("head of hash table at index: %i is command: %s\n", pgid%HASH_SIZE, hp[pgid%HASH_SIZE]->command);
+		*/
 		return 1;
 	}
 	else return -1;
