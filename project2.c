@@ -25,13 +25,13 @@ int main(int argc, char* args[]){
 	pid_t pid = -1;
 	 
 
-	memset (&sigAction, '\0', sizeof(sigAction)); //allocate memory for the  signal action struct
+	memset (&sigAction, '\0', sizeof(sigAction)); 	//allocate memory for the  signal action struct
 	
-	sigAction.sa_handler = signal_handler; //set the handler for the signal action struct
+	sigAction.sa_handler = signal_handler; 			//set the handler for the signal action struct
 	
-	sigAction.sa_flags = SA_SIGINFO;		//flag that we want to collect information about the process when a signal is caught
+	sigAction.sa_flags = SA_SIGINFO;				//flag that we want to collect information about the process when a signal is caught
 
-	hash_init();							//initialize hash table for processes
+	hash_init();									//initialize hash table for processes
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -148,7 +148,7 @@ int main(int argc, char* args[]){
 				setpgid(pid, pid);
 				insertProc(pid, getpgid(pid), input);
 				printf("Running: %s", searchProc(pid)->command);
-				waitpid(pid, &status, 0);
+				waitpid(pid, &status,WUNTRACED  | WNOHANG);
 			}
 			else
 				printf("Error: Could not create child\n");

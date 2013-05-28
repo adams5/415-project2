@@ -43,8 +43,10 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
 			printf("\nRunning: %s", searchProc(tmpPGID)->command);
+		else if(siginfo->si_code == 3)
+			perror("Child Returned");
 		else
-			printf("Child had some other exit status\n");
+			printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
 		
 		
 		//if the process is in the background, queue  the  message
@@ -87,4 +89,8 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 			//the shell do nothing
 		//}	
 	}
+	//if shell is told to continue, send to foreground
+	//else if(signal == SIGCONT){
+		//sendShellToFG();
+	//}
 }

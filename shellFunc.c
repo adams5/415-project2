@@ -112,7 +112,7 @@ void checkRed(char** tokens, int proc){
 
 		char* arg = tokens[i];
 		int j = 0;
-		while(arg[j] != NULL){
+		while(arg[j] != '\0'){
 			j++;
 		}
 
@@ -175,13 +175,30 @@ int checkBG(char** command){
 	while(command[i] != NULL){ i++; }
 
 	char* arg = command[i-1];
-	i = 0;
-	while(arg[i] != NULL){ i++; }
+	int j = 0;
+	while(arg[j] != '\0'){ j++; }
 
-	if (arg[i-1] == '&'){
+	if (arg[j-1] == '&'){		//background this process and remove the &
+
+		////debugging
+		//printf("printing original string\n");
+		//int n = 0;
+		//while(command[n] != NULL){printf("%s ", command[n]);n++;}
+		//printf("\n");
+
 		//background process
 		printf("found &\n");
-		arg[i-1] = NULL;
+		if(j-1>0)
+			arg[j-1] = '\0';
+		else
+			command[i-1] = NULL;
+		
+		////debugging		
+		//printf("printing new string\n");
+		//n=0;
+		//while(command[n] != NULL){printf("%s", command[n]);n++;}
+		//printf("\n");
+		
 		return 1;
 	}
 	else{
@@ -198,11 +215,23 @@ int processCommand(char* command){
 	int status;
 
 	numTokens = getTokens(command, tokens);	//create array of tokens
+	
+    printf("before checkbg, the value of tokens is:\n");
+    int z = 0;
+    while(z<numTokens){printf("%s ", tokens[z]);z++;}
+    printf("\n");
+    
 	status = checkBG(tokens);				//check for & for backgrounding a process
 	checkRed(tokens, 0);					//check for and handle redirection
     
+    printf("after checkbg, the value of tokens is:\n");
+    z = 0;
+    while(z<numTokens){printf("%s ", tokens[z]);z++;}
+    printf("\n");
+
     //if an & was found send the process to the background
-	if(status){
+	if(status == 1){
+		printf("sending process to bg\n");
 		sendToBG(getpid());
 	}
 	//else send it to the foreground
@@ -210,8 +239,9 @@ int processCommand(char* command){
 		sendToFG(getpid());
 	}
 	
-	for(int i = 0; i < numTokens; i++)
-		printf("Token at %i is %s\n", i, tokens[i]);
+	//debugging
+	//for(int i = 0; i < numTokens; i++)
+		//printf("Token at %i is %s\n", i, tokens[i]);
 	
 	status = execvp(tokens[0], tokens);
 

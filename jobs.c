@@ -46,8 +46,11 @@ void bringLastBGtoFG(){
 
 //switch the terminal control back to the shell
 void sendShellToFG(){
+	printf("call to send shell to fg\n");
 	if(tcsetpgrp(0, shellPID) == -1)
 		perror("setpgid() error");
+	//else
+		//kill(shellPID, SIGCONT);
 }
 
 void sendToFG(pid_t pid){
