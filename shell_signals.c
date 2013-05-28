@@ -1,6 +1,6 @@
 #include "shell_signals.h"
 #include "global.h"
-#include "process_hash.h"
+//#include "process_hash.h"
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -8,7 +8,6 @@
 #include "jobs.h"
 
 int status;
-
 
 void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
@@ -23,7 +22,19 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		//if finished
 		if(siginfo->si_code == CLD_EXITED){
-			printf("\nFinished: %s", searchProc(tmpPGID)->command);
+			if(siginfo->si_pid == currentfg.pid)
+				printf("\nFinished: %s", searchProc(tmpPGID)->command);
+			else
+			{
+				char* com = searchProc(tmpPGID)->command;
+				char* stat = "Finished: ";
+				char* merge = malloc(sizeof com + sizeof stat);
+				insertmsg(merge);
+				removeallmsg();
+				free(merge);
+			}
+			
+			///need to add redirection of output if in background
 			
 			//switch TC back to the shell
 			sendShellToFG();
@@ -43,8 +54,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
 			printf("\nRunning: %s", searchProc(lastStoppedBG.pgid)->command);
-		else if(siginfo->si_code == 3)
-			perror("Child Returned");
+		else if(siginfo->si_code == SIGTERM)
+			printf("\nTerminated: %s", searchProc(currentfg.pgid)->command);
 		else
 			printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
 		

@@ -1,6 +1,6 @@
 #include "jobs.h"
 #include "global.h"
-#include "process_hash.h"
+//#include "process_hash.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -52,23 +52,29 @@ void setLastStoppedBG(pid_t pid){
 
 void bringLastBGtoFG(){
 	tcsetpgrp(0, lastBG.pgid);
-		
+	currentfg.pgid = lastBG.pgid;
+	currentfg.pid = lastBG.pid;
 }
 
 //switch the terminal control back to the shell
 void sendShellToFG(){
 	printf("call to send shell to fg\n");
 	//printf("%s> ", shname);
-	if(tcsetpgrp(0, shellPID) == -1)
+	if(tcsetpgrp(0, shellPID) != -1){
+		currentfg.pid = shellPID;
+		currentfg.pgid = getpgid(shellPID);
+	}
+	else
 		perror("setpgid() error");
-	//else
-		//kill(shellPID, SIGCONT);
-		
 }
 
 void sendToFG(pid_t pid){
 	//printf("Setting %ld to tc\n",(long) pid);
-	if(tcsetpgrp(0, pid) == -1)
+	if(tcsetpgrp(0, pid) != -1){
+		currentfg.pid = pid;
+		currentfg.pgid = getpgid(pid);
+	}
+	else
 		perror("setpgid() error");
 	
 	//printf("\ntcgetpgrp: %ld\n",(long) tcgetpgrp(0));

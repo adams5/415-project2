@@ -9,6 +9,8 @@ pid_t groupID;
 pid_t shellPID;
 bgproc lastBG;
 bgproc lastStoppedBG;
+fgproc currentfg;
+
 char* shname;
 
 struct sigaction sigAction;

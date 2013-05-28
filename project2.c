@@ -1,7 +1,7 @@
 #include "shell_signals.h"
 #include "shellFunc.h"
 #include "utils.h"
-#include "global.h"
+//#include "global.h"
 #include "jobs.h"
 #include <sys/wait.h>
 
@@ -27,13 +27,14 @@ int main(int argc, char* args[]){
 
 	memset (&sigAction, '\0', sizeof(sigAction)); 	//allocate memory for the  signal action struct
 	
-	sigAction.sa_handler = signal_handler; 			//set the handler for the signal action struct
+	sigAction.sa_sigaction = signal_handler; 			//set the handler for the signal action struct
 	
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
 	
 
 	hash_init();									//initialize hash table for processes
+	msgqueue_init();								//initialize queue for background messages
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -54,7 +55,7 @@ int main(int argc, char* args[]){
 		
 		//print any queued messages from background processes here
 
-
+		removeallmsg();								//output queue status messages
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
@@ -148,9 +149,12 @@ int main(int argc, char* args[]){
 			//parent
 			else if(pid > 0){
 				setpgid(pid, pid);
+				currentfg.pid = pid;
+				currentfg.pgid= pid;
+				//fgp.command = input;
 				insertProc(pid, getpgid(pid), input);
 				printf("Running: %s", searchProc(pid)->command);
-				waitpid(pid, &status,WUNTRACED  | WNOHANG);
+				waitpid(pid, &status, 0);
 			}
 			else
 				printf("Error: Could not create child\n");
