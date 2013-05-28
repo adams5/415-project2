@@ -7,50 +7,63 @@
 void bg(){	
 	
 	//add checking to make sure there's a background job
-	
+	if(lastStoppedBG.pgid == 0)
+		printf("Error, no job stopped in the background\n");
 	//send SIGCONT to the most recently stopped background job, this will resume execution
-	if(killpg(lastStoppedBG.pgid,SIGCONT) == -1)
-		perror("killpg() error");
-		
+	else{
+		if(killpg(lastStoppedBG.pgid,SIGCONT) == -1)
+			perror("killpg() error");
+		else
+				setLastBG(lastStoppedBG.pid);		
+	}
 }
 
 
 void fg(){
 	
 	//add checking to make sure there's a last stopped job
-	
-	//printf("%s\n",searchProc(lastBG.pgid));
-	
-	//bring the most recetly backgrounded job to the foreground
-	//bringLastBGtoFG();
+	if(lastBG.pgid == 0){
+		printf("Error, no job in the background\n");
+	}
+	else{
+		printf("fg lastBG.pid: %ld lastBG.pgid: %ld\n",(long) lastBG.pid,(long) lastBG.pgid);
+		printf("%s\n",searchProc(lastBG.pgid)->command);
+		
+		//bring the most recetly backgrounded job to the foreground
+		bringLastBGtoFG();
 
-	//send a SIGCONT in case the job is stopped
-	if(killpg(lastBG.pgid,SIGCONT) == -1)
-		perror("killpg() error");
+		//send a SIGCONT in case the job is stopped
+		if(killpg(lastBG.pgid,SIGCONT) == -1)
+			perror("killpg() error");
+	}
 }
 
 void setLastBG(pid_t pid){
+	printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
 	lastBG.pid = pid;
 	lastBG.pgid = getpgid(pid);
 }
 
 void setLastStoppedBG(pid_t pid){
+	printf("lastStoppedBG lastStoppedBG.pid: %ld lastStoppedBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
 	lastStoppedBG.pid = pid;
 	lastStoppedBG.pgid = getpgid(pid);
 }
 
 void bringLastBGtoFG(){
-	tcsetpgrp(0, lastStoppedBG.pgid);
+	tcsetpgrp(0, lastBG.pgid);
 		
 }
 
 //switch the terminal control back to the shell
 void sendShellToFG(){
 	printf("call to send shell to fg\n");
+	//printf("%s> ", shname);
 	if(tcsetpgrp(0, shellPID) == -1)
 		perror("setpgid() error");
 	//else
 		//kill(shellPID, SIGCONT);
+		
 }
 
 void sendToFG(pid_t pid){
@@ -64,4 +77,5 @@ void sendToFG(pid_t pid){
 void sendToBG(pid_t pid){
 	setLastBG(pid);
 	sendShellToFG();
+	printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
 }

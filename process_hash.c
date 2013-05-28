@@ -111,5 +111,5 @@ char* toString(){
 		}
 		i++;
 	}
-	
+	return NULL; 
 }

@@ -19,8 +19,8 @@
 
 
 int main(int argc, char* args[]){
-	char** tokens;									//declare array of tokens
-	char* shname = "kinda-sh";						//initialize command line prompt string
+	//char** tokens;									//declare array of tokens
+	shname = "kinda-sh";						//initialize command line prompt string
 	int length;
 	pid_t pid = -1;
 	 
@@ -29,27 +29,28 @@ int main(int argc, char* args[]){
 	
 	sigAction.sa_handler = signal_handler; 			//set the handler for the signal action struct
 	
-	sigAction.sa_flags = SA_SIGINFO;				//flag that we want to collect information about the process when a signal is caught
+	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
+													//and to restart interrupted syscalls
+	
 
 	hash_init();									//initialize hash table for processes
 
 	if(pid != 0){
 		shellPID =  getpid();
 		printf("shellPID: %i\n",shellPID);
-		termCtrlGPID = shellPID;
 	}
 	while(1){
 		
 		// the following two signal might be needed for bg & fg to work correctly
 		
-		sigaction (SIGINT, &sigAction, NULL);
-		sigaction(SIGTTOU, &sigAction, NULL);
+		//sigaction (SIGINT, &sigAction, NULL);
+		//sigaction(SIGTTOU, &sigAction, NULL);
 		
 		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
 		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-		signal(SIGTTOU, SIG_IGN);	
+		signal(SIGTTOU, SIG_IGN);
 		
 		//print any queued messages from background processes here
 
@@ -115,12 +116,12 @@ int main(int argc, char* args[]){
 					//char* p1 =  input[0];
 					//char* p2 = input[status +1];
 					input[status] = '\0';
-					printf("set pipe to null\n", input);
+					printf("set pipe to null, input: %s\n", input);
 
 					memcpy(p1, &input[0], status);
-					printf("copied first command to p1\n", input);
+					printf("copied first command to p1, input: %s\n", input);
 					memcpy(p2, &input[status +1], length - status);
-					printf("copied second command to p2\n", input);
+					printf("copied second command to p2, input: %s\n", input);
 
 					//debugging
 					printf("the first command is: %s\n", p1);
@@ -140,6 +141,7 @@ int main(int argc, char* args[]){
 					//printf("lastJobCmd: %s\n", lastJobCmd);
 					//printf("input: %s\n",input);
 					processCommand(input);
+					//waitpid(pid,NULL,0);
 				}
 				_exit(0);
 			}

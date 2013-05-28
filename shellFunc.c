@@ -240,8 +240,8 @@ int processCommand(char* command){
 	}
 	
 	//debugging
-	//for(int i = 0; i < numTokens; i++)
-		//printf("Token at %i is %s\n", i, tokens[i]);
+	for(int i = 0; i < numTokens; i++)
+		printf("Token at %i is %s\n", i, tokens[i]);
 	
 	status = execvp(tokens[0], tokens);
 

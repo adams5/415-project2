@@ -10,10 +10,10 @@
 int status;
 
 
-void signal_handler(int signal, siginfo_t *siginfo, void *context)
+void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
 	//if a process chages state this signal will be triggered
-	if(signal == SIGCHLD){
+	if(sigNum == SIGCHLD){
 		HPROC* tempProc = searchProc(siginfo->si_pid);
 		pid_t tmpPGID = tempProc->pgid;
 		//printf("Shell PID: %ld\n",(long)shellPID);
@@ -42,7 +42,7 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		}
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
-			printf("\nRunning: %s", searchProc(tmpPGID)->command);
+			printf("\nRunning: %s", searchProc(lastStoppedBG.pgid)->command);
 		else if(siginfo->si_code == 3)
 			perror("Child Returned");
 		else
@@ -56,14 +56,14 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		
 		waitpid(0,&status,0);
 	}
-	else if(signal == SIGTTIN){
+	else if(sigNum == SIGTTIN){
 		printf("Recieved SIGTIN");
 	}
-	else if(signal == SIGTTOU){
+	else if(sigNum == SIGTTOU){
 		printf("Recieved SIGTOU");
 	}
 	//CTRL-C
-	else if(signal == SIGTERM){
+	else if(sigNum == SIGTERM){
 
 		if(getpgid(0)==shellPID){
 			printf("Shell recieved CTRL-C\n");
@@ -73,24 +73,30 @@ void signal_handler(int signal, siginfo_t *siginfo, void *context)
 		}
 	}
 	//CTRL-Z
-	else if(signal == SIGTSTP){
+	else if(sigNum == SIGTSTP){
+					
 		//printf("\nCTRL-Z, siginfo->si_pid: %ld\n",(long) siginfo->si_pid);
 		//printf("\nCTRL-Z, getpid(): %ld\n",(long) getpid());
 		//printf("tcgetpgrp(0): %ld\n", tcgetpgrp(0));
 		
 		
 		//killpg(siginfo->si_pid,SIGSTOP);
-	//	if(tcgetpgrp(0)!=shellPID){
+		if(tcgetpgrp(0)!=shellPID){
 			//not the shell, do something
-			//printf("do something\n");
-		//}
-		//else{
-			//printf("do nothing\n");			
+			printf("do something\n");
+		}
+		else{
+			printf("do nothing\n");			
 			//the shell do nothing
-		//}	
+		}	
 	}
 	//if shell is told to continue, send to foreground
-	//else if(signal == SIGCONT){
-		//sendShellToFG();
-	//}
+	else if(sigNum == SIGCONT){
+		printf("SIGCONT\n");
+		sendShellToFG();
+			
+	
+		//signal(SIGTTOU, SIG_DFL);
+		
+	}	
 }
