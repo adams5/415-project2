@@ -41,17 +41,16 @@ int main(int argc, char* args[]){
 		printf("shellPID: %i\n",shellPID);
 	}
 	while(1){
-		
-		// the following two signal might be needed for bg & fg to work correctly
-		
-		//sigaction (SIGINT, &sigAction, NULL);
-		//sigaction(SIGTTOU, &sigAction, NULL);
-		
+	
 		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
 		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+		
+		//block the following signals
 		signal(SIGTTOU, SIG_IGN);
+		signal(SIGINT, SIG_IGN);
+		signal(SIGQUIT, SIG_IGN);
 		
 		//print any queued messages from background processes here
 
