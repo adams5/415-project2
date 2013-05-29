@@ -5,27 +5,39 @@
 #include <unistd.h>
 
 void bg(){	
-	
-	//add checking to make sure there's a background job
-	if(lastStoppedBG.pgid == 0)
-		printf("Error, no job stopped in the background\n");
-	//send SIGCONT to the most recently stopped background job, this will resume execution
-	else{
-		if(killpg(lastStoppedBG.pgid,SIGCONT) == -1)
-			perror("killpg() error");
-		else
-				setLastBG(lastStoppedBG.pid);		
+	if(!qisempty()){
+		bgproc lsproc;
+		if((findlaststopped(&lsproc)) == -1)
+			printf("Error, no job stopped in the background\n");
+		//send SIGCONT to the most recently stopped background job, this will resume execution
+		else{
+			if(killpg(lsproc.pgid,SIGCONT) == -1)
+				perror("killpg() error");
+			else
+			{
+				setLastBG(lastStoppedBG.pid);	
+				remqueue(lsproc.pid, NULL);
+				enqueue(lsproc.pid, lsproc.pgid, lsproc.command);
+			}
+		}
+	}
+	else
+	{
+		printf("Background Queue is empty\n");
 	}
 }
 
 
 void fg(){
-	
-	//add checking to make sure there's a last stopped job
-	if(lastBG.pgid == 0){
-		printf("Error, no job in the background\n");
-	}
-	else{
+	if(!qisempty()){
+		bgproc lproc;
+		qpeekhead(&lproc);
+		
+		//bgproc lproc;
+		//if(lastBG.pgid == 0){
+			//printf("Error, no job in the background\n");
+		//}
+		//else{
 		printf("fg lastBG.pid: %ld lastBG.pgid: %ld\n",(long) lastBG.pid,(long) lastBG.pgid);
 		printf("%s\n",searchProc(lastBG.pgid)->command);
 		
@@ -33,9 +45,15 @@ void fg(){
 		bringLastBGtoFG();
 
 		//send a SIGCONT in case the job is stopped
-		if(killpg(lastBG.pgid,SIGCONT) == -1)
+		if(killpg(lproc.pgid,SIGCONT) == -1)
 			perror("killpg() error");
+		//}
 	}
+	else
+	{
+		printf("Background Queue is empty\n");
+	}
+	
 }
 
 void setLastBG(pid_t pid){
@@ -51,9 +69,11 @@ void setLastStoppedBG(pid_t pid){
 }
 
 void bringLastBGtoFG(){
-	tcsetpgrp(0, lastBG.pgid);
-	currentfg.pgid = lastBG.pgid;
-	currentfg.pid = lastBG.pid;
+	bgproc last;
+	dequeue(&last);
+	tcsetpgrp(0, last.pgid);
+	currentfg.pgid = last.pgid;
+	currentfg.pid = last.pid;
 }
 
 //switch the terminal control back to the shell
@@ -61,6 +81,7 @@ void sendShellToFG(){
 	printf("call to send shell to fg\n");
 	//printf("%s> ", shname);
 	if(tcsetpgrp(0, shellPID) != -1){
+		tcsetpgrp(1, shellPID);
 		currentfg.pid = shellPID;
 		currentfg.pgid = getpgid(shellPID);
 	}
@@ -73,6 +94,8 @@ void sendToFG(pid_t pid){
 	if(tcsetpgrp(0, pid) != -1){
 		currentfg.pid = pid;
 		currentfg.pgid = getpgid(pid);
+		remqueue(currentfg.pid, NULL);
+		removeProc(currentfg.pgid);
 	}
 	else
 		perror("setpgid() error");

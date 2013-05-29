@@ -155,7 +155,7 @@ int getTokens(char* input, char** tokens){
 	int i = 0;
 	while((tok = get_next_token(tokenizer)) != NULL){
 		tokens[i++] = tok;
-		printf("token is: %s\n", tokens[i-1]);
+		//printf("token is: %s\n", tokens[i-1]);
 	}
 
 	//int j;
@@ -187,7 +187,7 @@ int checkBG(char** command){
 		//printf("\n");
 
 		//background process
-		printf("found &\n");
+		//printf("found &\n");
 		if(j-1>0)
 			arg[j-1] = '\0';
 		else
@@ -211,15 +211,15 @@ int checkBG(char** command){
 int processCommand(char* command){
 
 	tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
-	int numTokens = 0;							//value to hold how many tokens in input
+	//int numTokens = 0;							//value to hold how many tokens in input
 	int status;
 
-	numTokens = getTokens(command, tokens);	//create array of tokens
+	getTokens(command, tokens);	//create array of tokens
 	
-    printf("before checkbg, the value of tokens is:\n");
-    int z = 0;
-    while(z<numTokens){printf("%s ", tokens[z]);z++;}
-    printf("\n");
+    //printf("before checkbg, the value of tokens is:\n");
+    //int z = 0;
+    //while(z<numTokens){printf("%s ", tokens[z]);z++;}
+    //printf("\n");
     
 	status = checkBG(tokens);				//check for & for backgrounding a process
 	checkRed(tokens, 0);					//check for and handle redirection
@@ -236,7 +236,7 @@ int processCommand(char* command){
 	}
 	//else send it to the foreground
 	else{
-		sendToFG(getpid());
+		//sendToFG(getpid());
 	}
 	
 	////debugging

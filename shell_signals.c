@@ -18,6 +18,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		pid_t tmpPGID = tempProc->pgid;
 		//printf("Shell PID: %ld\n",(long)shellPID);
 		
+		printf("PID: %ld PGID: %ld and %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, (long)tmpPGID, siginfo->si_code);
 		//printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, siginfo->si_code);
 		//detect the status of the process and generate a message
 		
@@ -58,6 +59,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 				printf("Sent stop signal to child\n");
 			}
 			
+			//send stop signal to child
+			killpg(tempProc->pgid, SIGTSTP);
 			
 			//add process to background queue
 			enqueue(tempProc->pid, tempProc->pgid, tempProc->command);
