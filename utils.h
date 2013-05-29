@@ -12,10 +12,11 @@ typedef enum{background, foreground}VIS;
 typedef struct BGProc{
 	pid_t pid;
 	pid_t pgid;
-	char* command;
+	char command[MAX_BUFFER];
 	STATE state;
 	VIS visibility;
 	struct BGProc* next;
+	struct BGProc* prev;
 }bgproc;
 
 typedef struct FGProc{
@@ -28,8 +29,8 @@ typedef struct FGProc{
 char** bgmsgbuffer;
 int msgbufferpos;
 bgproc** queue;
-int qhead;
-int qtail;
+bgproc* qhead;
+bgproc* qtail;
 bgproc qproc;
 fgproc fproc;
 

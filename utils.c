@@ -21,9 +21,9 @@ int cmp(char *s1, char *s2)
 }
 
 int queue_init(){
-	if((long)(queue = calloc(PROC_MAX, sizeof(qproc))) != -1){
-		qhead = -1;
-		qtail = 0;
+	if((long)(queue = calloc(PROC_MAX, sizeof(struct BGProc))) != -1){
+		qhead = NULL;
+		qtail = NULL;
 		return 1;
 	}
 	else
@@ -34,42 +34,63 @@ int queue_init(){
 }
 
 int free_queue(){
-	bgproc dproc;
+	struct BGProc dproc;
 	while(!qisempty()){dequeue(&dproc);}
 	free(queue);		///not sure what to do here
 	return 1;	
 }
 
 int enqueue(pid_t pid, pid_t pgid, char* command){
-	if(!qisfull()){
-		printf("enqueing process\n");
-		bgproc* nproc = malloc(sizeof(bgproc));
+	struct BGProc* nproc;
+	if((nproc = malloc(sizeof(struct BGProc))) != -1){
+		//printf("enqueing process\n");
 		nproc->pid = pid;
 		nproc->pgid = pgid;
-		nproc->command = command;
 		nproc->state = running;
 		nproc->visibility = foreground;
+		nproc->next = NULL;
+		nproc->prev = NULL;
+		int i = 0;
+		while(command[i] != '\0'){
+			nproc->command[i] = command[i];
+			i++;
+		}
+		nproc->command[i]='\0';
+		printf("new proc to enqueue has command of: %s and pid of: %i\n", nproc->command, nproc->pid);
 		//printf("nproc state: %i\n", nproc->state);
-		qhead = (qhead+1)%PROC_MAX;
-		queue[qhead] = nproc;
-		printf("finished enqueing process\n");
-		//printf("pid: %i pgid: %i com: %s state: %i vis: %i\n", nproc->pid, nproc->pgid, 
-		//			nproc->command, nproc->state, nproc->visibility);
+		if(qisempty()){
+			qtail = qhead = nproc;
+			nproc->prev = NULL;
+			nproc->next = NULL;
+		}
+		else
+		{
+			nproc->next = qhead;
+			qhead->prev = nproc;
+		}
+		qhead = nproc;
 		return 1;
 	}
 	else{
-		printf("Queue is full, cannot insert background process: %s\n", command);
 		return 0;
 	}
 }
  
-int dequeue(bgproc* dproc){
+int dequeue(struct BGProc* dproc){
 	if(!qisempty()){
-		dproc->pid = queue[qtail]->pid;
-		dproc->pgid = queue[qtail]->pgid;
-		dproc->command = queue[qtail]->command;
-		free(queue[qtail]);
-		qtail = (qtail+1)%PROC_MAX;
+		dproc->pid = qtail->pid;
+		dproc->pgid = qtail->pgid;
+		dproc->state = qtail->state;
+		dproc->visibility = qtail->visibility;
+		int i = 0;
+		while(qtail->command[i] != '\0'){
+			dproc->command[i] = qtail->command[i];
+			i++;
+		}
+		
+		struct BGProc* tempTail = qtail;
+		qtail = qtail->prev;
+		free(tempTail);
 		return 1;
 	}
 	else
@@ -80,32 +101,47 @@ int dequeue(bgproc* dproc){
 		
 }
 
-int remqueue(pid_t pid, bgproc* dproc){
+int remqueue(pid_t pid, struct BGProc* dproc){
 	if(!qisempty()){
-		printf("in remqueue\n");
-		printf("qtail is: %i\n", qtail);
-		printf("qhead is: %i\n", qhead);
-		int temptail = qtail;
-		//if(queue[temptail] != NULL)
+		//printf("in remqueue\n");
+		//printf("qtail is: %i\n", qtail);
+		//printf("qhead is: %i\n", qhead);
+		struct BGProc* temptail = qtail;
+		struct BGProc* tempProc = temptail;
+		
+	//if(queue[temptail] != NULL)
 			//printf("first element in queue has pid: %i\n", queue[temptail]->pid);
 		//else
 			//printf("bg proc is null and shouldn't be\n");
-		while((queue[temptail]->pid != pid) && (temptail != qhead)){
-			//printf("in loop for %i time\n", temptail);
-			temptail = (temptail+1)%PROC_MAX;
+		while(temptail != NULL && temptail->pid != pid){
+			printf("current pid is: %i\n", temptail->pid);
+			tempProc = temptail;
+			temptail = temptail->prev;
+			printf("temptail com: %s tempProc com: %s\n", temptail->command, tempProc->command);
 		}
 		
 		//printf("found struct or not there\n");
-		if(queue[temptail]->pid == pid){
-			dproc->pid = queue[temptail]->pid;
-			dproc->pgid = queue[temptail]->pgid;
-			dproc->command = queue[temptail]->command;
-			dproc->state = queue[temptail]->state;
-			dproc->visibility = queue[temptail]->visibility;
+		if(temptail != NULL && temptail->pid == pid){
+			dproc->pid = temptail->pid;
+			dproc->pgid = temptail->pgid;
+			dproc->state = temptail->state;
+			dproc->visibility = temptail->visibility;
+			tempProc->prev = temptail->prev;
+			
+			int i = 0;
+			while(qtail->command[i] != '\0'){
+				dproc->command[i] = temptail->command[i];
+				i++;
+			}
+			
+			if(tempProc->prev != NULL)
+				tempProc->prev->next = temptail->next;
+			free(temptail);
 			return 1;
 		}
 		else
 		{
+			printf("child not in queue\n");
 			return -1;
 		}
 	}
@@ -176,15 +212,15 @@ int remqueue(pid_t pid, bgproc* dproc){
 
 int qchangevis(pid_t pid, int i){
 	if(!qisempty()){
-		int tempHead = qhead;
-		while(tempHead != (qtail-1)%PROC_MAX){
-			if(queue[tempHead]->pid == pid){
-				queue[tempHead]->visibility = i;
+		struct BGProc* tempHead = qhead;
+		while(tempHead != NULL){
+			if(tempHead->pid == pid){
+				tempHead->visibility = i;
 				return 1;
 			}
 			else
 			{
-				tempHead = (tempHead-1)%PROC_MAX;
+				tempHead = tempHead->next;
 			}
 			
 		}
@@ -234,15 +270,23 @@ int setBGProc(pid_t pid, pid_t pgid, char* com){
 	qproc.pid = pid;
 	qproc.pgid =pgid;
 	qproc.state = running;
-	qproc.command = com;
+	int i = 0;
+	while(qtail->command[i] != '\0'){
+		qproc.command[i] = com[i];
+		i++;
+	}
 }
 
 int getBGProc(bgproc* fg){
 	if(qproc.pid > 0){
-		printf("qproc is not null\n");
+		//printf("qproc is not null\n");
 		fg->pid = qproc.pid;
 		fg->pgid = qproc.pgid;
-		fg->command = qproc.command;
+		int i = 0;
+		while(qtail->command[i] != '\0'){
+			fg->command[i] = qproc.command[i];
+			i++;
+		}
 		return 0;
 	}
 	else
@@ -254,18 +298,18 @@ int getBGProc(bgproc* fg){
 }
 
 int qisempty(){
-	if(((qhead+1)%PROC_MAX)==qtail)
+	if(qhead==NULL)
 		return 1;
 	else
 		return 0;
 }
 
-int qisfull(){
-	if(((qhead+2)%PROC_MAX)==qtail)
-		return 1;
-	else
-		return 0;
-}
+//int qisfull(){
+	//if(((qhead+2)%PROC_MAX)==qtail)
+		//return 1;
+	//else
+		//return 0;
+//}
 
 int msgbuffer_init(){
 	msgbufferpos = 0;
@@ -278,6 +322,7 @@ int msgbuffer_init(){
 int insert_msgbuffer(char* msg){
 	if(msgbufferpos < MAX_BUFFER){
 		bgmsgbuffer[msgbufferpos++] = msg;
+		printf("string buffered is: %s\n", bgmsgbuffer[msgbufferpos-1]);
 		return 1;
 	}
 	else
@@ -290,6 +335,7 @@ int insert_msgbuffer(char* msg){
 
 int msgbuffer_tostring(){
 	if(msgbufferpos != 0){
+		printf("Queued messages from backgrounded processes\n");
 		int i = 0;
 		while(i <msgbufferpos){
 			printf("%s\n",bgmsgbuffer[i++]);

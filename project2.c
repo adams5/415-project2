@@ -142,6 +142,7 @@ int main(int argc, char* args[]){
 				status = checkBG(input);
 				if(status == 1){
 					//printf("sending process to bg\n");
+					printf("command for fork is: %s\n", input);
 					sendToBG(pid, input);
 					//qchangevis(pid, 0);
 					setBGProc(pid, getpgid(pid), input);

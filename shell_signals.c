@@ -15,15 +15,20 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
 	//if a process chages state this signal will be triggered
 	if(sigNum == SIGCHLD){
-		printf("entered sigchld if\n");
+		//printf("entered sigchld if\n");
 		fgproc fgp;
-		bgproc bgp;
-		remqueue(siginfo->si_pid, &bgp);
 		getFGProc(&fgp);
+		
+		bgproc bgp;
+		if(fgp.pid != siginfo->si_pid){
+			printf("searching for pid: %i\n", siginfo->si_pid);
+			remqueue(siginfo->si_pid, &bgp);
+			printf("proc %i has a command of: %s\n", bgp.pid, bgp.command);
+		}
 
 		//if finished
 		if(siginfo->si_code == CLD_EXITED){
-			printf("si_pid: %i fgp.pid: %i tcget: %i\n", siginfo->si_pid, fgp.pid, tcgetpgrp(0));
+			//printf("si_pid: %i fgp.pid: %i tcget: %i\n", siginfo->si_pid, fgp.pid, tcgetpgrp(0));
 			if(siginfo->si_pid == fgp.pid){
 				printf("\nFinished in fg: %s\n%s", fgp.command, shname);
 			}
@@ -31,15 +36,16 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			{
 				//printf("enter bg of chldexit\n");
 				
-				char bgmsg[MAX_MSG];
 				char* stat = "Finished: ";
+				char* com = bgp.command;
+				char bgmsg[MAX_MSG];
 				int i =0;
 				while(stat[i] != '\0'){
 					bgmsg[i] = stat[i];
 					i++;
 				}
 				int j =0;
-				char* com = bgp.command;
+				printf("command to be queued: %s\n", com);
 				while(com[j] != '\0'){
 					bgmsg[i++] = com[j++];
 				}

@@ -69,7 +69,7 @@ The code is layed out in the files listed above. project2.c contains the main sh
 		Number of Grace Days
 ============================================================
 
-Zero
+One day
 
 ============================================================
 		Attribution

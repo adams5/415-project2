@@ -217,9 +217,9 @@ int processCommand(char* command){
 	int status;
 
 	status = checkBG(command);				//check for & for backgrounding a process
-	printf("checked for &\n");
+	//printf("checked for &\n");
 	getTokens(command, tokens);	//create array of tokens
-	printf("tokenized input\n");
+	//printf("tokenized input\n");
 	
     //printf("before checkbg, the value of tokens is:\n");
     //int z = 0;
@@ -227,7 +227,7 @@ int processCommand(char* command){
     //printf("\n");
     
 	checkRed(tokens, 0);					//check for and handle redirection
-    printf("checked redirect tokens\n");
+    //printf("checked redirect tokens\n");
     //printf("after checkbg, the value of tokens is:\n");
     //z = 0;
     //while(z<numTokens){printf("%s ", tokens[z]);z++;}

@@ -108,12 +108,12 @@ void sendToFG(pid_t pid){
 }
 
 void sendToBG(pid_t pid, char* com){
-	printf("enter sendtobg\n");
+	//printf("enter sendtobg\n");
 	//setLastBG(pid);
 	enqueue(pid, getpgid(pid), com);
 	qchangevis(pid, 0);
 	setFGProc(shellPID, shellPID, com);
-	printf("Foreground proc set\n");
+	//printf("Foreground proc set\n");
 	//printf("setting currentfg, shellPID is: %i\n", shellPID);
 	currentfg.pgid = shellPID;
 	//printf("setting currentfg.pid, shellPID is: %i\n", shellPID);
@@ -121,5 +121,5 @@ void sendToBG(pid_t pid, char* com){
 	//printf("shellPID in sendtobg is: %i\n", shellPID);
 	//sendShellToFG();
 	//printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	printf("exiting sendToBG\n");
+	//printf("exiting sendToBG\n");
 }
