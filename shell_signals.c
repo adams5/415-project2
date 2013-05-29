@@ -49,6 +49,20 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			//set the most recent stopped BG process
 			setLastStoppedBG(siginfo->si_pid);
 			
+			//stop child process
+			if((status = killpg(tempProc->pgid, SIGTSTP)) == -1){
+				perror("Child signal failed");
+			}
+			else
+			{
+				printf("Sent stop signal to child\n");
+			}
+			
+			
+			//add process to background queue
+			enqueue(tempProc->pid, tempProc->pgid, tempProc->command);
+			qchangestate(tempProc->pid, 0);
+			
 			//switch TC back to the shell
 			sendShellToFG();
 		}
@@ -95,7 +109,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		//killpg(siginfo->si_pid,SIGSTOP);
 		if(tcgetpgrp(0)!=shellPID){
 			//not the shell, do something
-			printf("do something\n");
+			//printf("do something\n");
 		}
 		else{
 			printf("do nothing\n");	

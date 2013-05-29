@@ -42,6 +42,12 @@ void removeallmsg();
 
 int remqueue(pid_t pid, bgproc* dproc);
 
+int qchangestate(pid_t pid, int i);
+
+int findlaststopped(bgproc* dproc);
+
+int qpeekhead(bgproc* dproc);
+
 int qisempty();
 
 int qisfull();

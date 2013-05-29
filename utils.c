@@ -73,12 +73,6 @@ int dequeue(bgproc* dproc){
 		
 }
 
-//void removeallmsg(){
-	//while(!msgisempty()){
-		//printf("%s\n", msgqueue[mtail++]);
-	//}
-//}
-
 int remqueue(pid_t pid, bgproc* dproc){
 	int temptail = qtail;
 	while(queue[temptail]->pid != pid && temptail != qhead){
@@ -99,6 +93,60 @@ int remqueue(pid_t pid, bgproc* dproc){
 
 }
 
+int findlaststopped(bgproc* dproc){
+	int tempHead = qhead;
+	while(tempHead != (qtail-1)%PROC_MAX){
+		if(queue[tempHead]->state == Stopped){
+			dproc->pid = queue[tempHead]->pid;
+			dproc->pgid = queue[tempHead]->pgid;
+			dproc->command = queue[tempHead]->command;
+			return 1;
+		}
+		else
+		{
+			tempHead = (tempHead-1)%PROC_MAX;
+		}
+		
+	}
+	return -1;
+}
+
+int qpeekhead(bgproc* dproc){
+	if(!qisempty()){
+		dproc->pid = queue[qhead]->pid;
+		dproc->pgid = queue[qhead]->pgid;
+		dproc->command = queue[qhead]->command;
+		dproc->state = queue[qhead]->state;
+		return 1;
+	}
+	else
+	{
+		return -1;
+	}
+	
+}
+
+int qchangestate(pid_t pid, int i){
+	if(!qisempty()){
+		int tempHead = qhead;
+		while(tempHead != (qtail-1)%PROC_MAX){
+			if(queue[tempHead]->pid == pid){
+				queue[tempHead]->state = i;
+				return 1;
+			}
+			else
+			{
+				tempHead = (tempHead-1)%PROC_MAX;
+			}
+			
+		}
+		return -1;
+	}
+	else
+	{
+		return -1;
+	}
+}
 
 int qisempty(){
 	if(qhead==qtail)
