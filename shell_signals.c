@@ -1,6 +1,6 @@
 #include "shell_signals.h"
 #include "global.h"
-#include "process_hash.h"
+//#include "process_hash.h"
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -30,12 +30,11 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		if(siginfo->si_code == CLD_EXITED){
 			//printf("si_pid: %i fgp.pid: %i tcget: %i\n", siginfo->si_pid, fgp.pid, tcgetpgrp(0));
 			if(siginfo->si_pid == fgp.pid){
-				printf("\nFinished in fg: %s\n%s", fgp.command, shname);
+				printf("Finished in fg: %s\n", fgp.command);
 			}
 			else
 			{
-				//printf("enter bg of chldexit\n");
-				
+				//buffer messages from backgrounded process
 				char* stat = "Finished: ";
 				char* com = bgp.command;
 				char bgmsg[MAX_MSG];
@@ -60,9 +59,17 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			
 			//let the user know what process stopped
 			printf("\nStopped: %s", fgp.command);
-			
+						
 			//set the most recent stopped BG process
-			setLastStoppedBG(siginfo->si_pid);
+			sendToBG(fproc.pid, fproc.command);
+			qchangestate(siginfo->si_pid, 0);
+			
+			
+			//enqueue(fproc.pid, fproc.pgid, fproc.command);
+			//change
+			//setLastStoppedBG(siginfo->si_pid);
+			
+			
 			
 			printf("child stopped\n");
 			
@@ -89,8 +96,10 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		else if(siginfo->si_code == CLD_CONTINUED){
 			printf("\nRunning: %i", lastStoppedBG.pgid);
 		}
-		else if(siginfo->si_code == SIGTERM)
+		else if(siginfo->si_code == SIGTERM){
+			setFGProc(shellPID, shellPID, "Shell");
 			printf("\nTerminated: %i", currentfg.pgid);
+		}
 		else
 			printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
 		
@@ -127,9 +136,10 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		
 		//killpg(siginfo->si_pid,SIGSTOP);
-		if(tcgetpgrp(0)!=shellPID){
+		if(fproc.pid != shellPID){
 			//not the shell, do something
 			printf("child stopped\n");
+			kill(fproc.pid, SIGTSTP);
 		}
 		else{
 			printf("do nothing\n");	

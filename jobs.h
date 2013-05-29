@@ -2,7 +2,7 @@
 #define __JOBS_H__
 
 #include "global.h"
-#include "process_hash.h"
+//#include "process_hash.h"
 #include <signal.h>
 
 void bg();

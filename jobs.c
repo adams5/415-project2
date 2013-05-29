@@ -5,78 +5,62 @@
 #include <unistd.h>
 
 void bg(){	
-	//if(!qisempty()){
-		bgproc lsproc;
-		if((getBGProc(&lsproc)) == -1)
-			printf("Error, no job stopped in the background\n");
-		//send SIGCONT to the most recently stopped background job, this will resume execution
-		else{
-			if(killpg(lsproc.pgid,SIGCONT) == -1)
-				perror("killpg() error");
-			else
-			{
-				setLastBG(lastStoppedBG.pid);	
-				
-				//remqueue(lsproc.pid, NULL);
-				//enqueue(lsproc.pid, lsproc.pgid, lsproc.command);
-			}
+	struct BGProc lsproc;
+	
+	if(findlaststopped(&lsproc) == 1){
+		if(killpg(lsproc.pgid,SIGCONT) == -1)
+			perror("killpg() error");
+		else
+		{
+			qchangestate(lsproc.pid, 1);
+			//setLastBG(lsproc.pid, lsproc.pgid, lsproc);	
+			
+			//remqueue(lsproc.pid, NULL);
+			//enqueue(lsproc.pid, lsproc.pgid, lsproc.command);
 		}
-	//}
-	//else
-	//{
-		//printf("Background Queue is empty\n");
-	//}
+	}
+	else
+	{
+		printf("Background Queue is empty or no background processes are stopped\n");
+	}
 }
 
 
 void fg(){
-	//if(!qisempty()){
-		bgproc lproc;
-		getBGProc(&lproc);
-		//qpeekhead(&lproc);
+	//bgproc lproc;
+	//if(getBGProc(&lproc));
 		
-		//bgproc lproc;
-		//if(lastBG.pgid == 0){
-			//printf("Error, no job in the background\n");
-		//}
-		//else{
-		//printf("fg lastBG.pid: %ld lastBG.pgid: %ld\n",(long) lastBG.pid,(long) lastBG.pgid);
-		printf("%s\n",searchProc(lastBG.pgid)->command);
-		
-		//bring the most recetly backgrounded job to the foreground
-		bringLastBGtoFG();
+	//bring the most recetly backgrounded job to the foreground
+	bringLastBGtoFG();
 
-		//send a SIGCONT in case the job is stopped
-		if(killpg(lproc.pgid,SIGCONT) == -1)
-			perror("killpg() error");
-		//}
-	//}
-	//else
-	//{
-		//printf("Background Queue is empty\n");
-	//}
-	
 }
 
-void setLastBG(pid_t pid){
-	//printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	lastBG.pid = pid;
-	lastBG.pgid = getpgid(pid);
-}
+//void setLastBG(pid_t pid){
+	////printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
+	//lastBG.pid = pid;
+	//lastBG.pgid = getpgid(pid);
+//}
 
-void setLastStoppedBG(pid_t pid){
-	//printf("lastStoppedBG lastStoppedBG.pid: %ld lastStoppedBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	lastStoppedBG.pid = pid;
-	lastStoppedBG.pgid = getpgid(pid);
-}
+//void setLastStoppedBG(pid_t pid){
+	////printf("lastStoppedBG lastStoppedBG.pid: %ld lastStoppedBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
+	//lastStoppedBG.pid = pid;
+	//lastStoppedBG.pgid = getpgid(pid);
+//}
 
 void bringLastBGtoFG(){
-	bgproc last;
-	getBGProc(&last);
-	//dequeue(&last);
+	bgproc last;				//temporarily hold onto foregrounding process
+	
+	//remove last backgrounded process from queue and set foreground info to it
+	removehead(&last);
 	tcsetpgrp(0, last.pgid);
-	currentfg.pgid = last.pgid;
-	currentfg.pid = last.pid;
+	setFGProc(last.pid, last.pgid, last.command);
+
+	//send a SIGCONT in case the job is stopped
+	if(killpg(last.pgid,SIGCONT) == -1)
+		perror("killpg() error");	
+
+	//currentfg.pgid = last.pgid;
+	//currentfg.pid = last.pid;
 }
 
 //switch the terminal control back to the shell
@@ -94,30 +78,35 @@ void bringLastBGtoFG(){
 
 void sendToFG(pid_t pid){
 	//printf("Setting %ld to tc\n",(long) pid);
-	if(tcsetpgrp(0, pid) != -1){
-		currentfg.pid = pid;
-		currentfg.pgid = getpgid(pid);
-		setFGProc(pid, getpgid(pid), NULL);
-		//remqueue(currentfg.pid, NULL);
-		//removeProc(currentfg.pgid);
+	struct BGProc tofg;
+	if(remqueue(pid, &tofg) == 1){
+		if(tcsetpgrp(0, tofg.pgid) != -1){
+			//currentfg.pid = pid;
+			//currentfg.pgid = getpgid(pid);
+			setFGProc(tofg.pid, tofg.pgid, tofg.command);
+			//remqueue(currentfg.pid, NULL);
+			//removeProc(currentfg.pgid);
+		}
+		else
+			perror("setpgid() error");
 	}
 	else
-		perror("setpgid() error");
+	{
+		printf("Process is not in background\n");
+	}
+	
 	
 	//printf("\ntcgetpgrp: %ld\n",(long) tcgetpgrp(0));
 }
 
 void sendToBG(pid_t pid, char* com){
-	//printf("enter sendtobg\n");
-	//setLastBG(pid);
 	enqueue(pid, getpgid(pid), com);
-	qchangevis(pid, 0);
-	setFGProc(shellPID, shellPID, com);
+	setFGProc(shellPID, shellPID, "Shell");
 	//printf("Foreground proc set\n");
 	//printf("setting currentfg, shellPID is: %i\n", shellPID);
-	currentfg.pgid = shellPID;
+	//currentfg.pgid = shellPID;
 	//printf("setting currentfg.pid, shellPID is: %i\n", shellPID);
-	currentfg.pid = shellPID;
+	//currentfg.pid = shellPID;
 	//printf("shellPID in sendtobg is: %i\n", shellPID);
 	//sendShellToFG();
 	//printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));

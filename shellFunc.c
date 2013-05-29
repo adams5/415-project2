@@ -214,7 +214,7 @@ int processCommand(char* command){
 
 	tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
 	//int numTokens = 0;							//value to hold how many tokens in input
-	int status;
+	//int status;
 
 	status = checkBG(command);				//check for & for backgrounding a process
 	//printf("checked for &\n");

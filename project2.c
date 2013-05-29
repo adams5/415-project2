@@ -32,7 +32,6 @@ int main(int argc, char* args[]){
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
 	
-	//hash_init();									//initialize hash table for processes
 	queue_init();								//initialize queue for background messages
 	msgbuffer_init();
 
@@ -41,13 +40,7 @@ int main(int argc, char* args[]){
 		printf("shellPID: %i\n",shellPID);
 	}
 	while(1){
-	
-		
-		//print any queued messages from background processes here
-		bgproc bgp;
-		//qpeekhead(&bgp);
-		//printf("the head of the bg queue is: pid-%i\n", bgp.pid);
-		
+			
 		//Output buffered messages from background processes
 		msgbuffer_tostring();
 		
@@ -142,27 +135,28 @@ int main(int argc, char* args[]){
 				status = checkBG(input);
 				if(status == 1){
 					//printf("sending process to bg\n");
-					printf("command for fork is: %s\n", input);
-					sendToBG(pid, input);
+					//printf("command for fork is: %s\n", input);
 					//qchangevis(pid, 0);
-					setBGProc(pid, getpgid(pid), input);
+					sendToBG(pid, input);
+					//setBGProc(pid, getpgid(pid), input);
+					waitpid(pid, &status, WNOHANG|WUNTRACED);
 				}
 				else
 				{
 					setFGProc(pid, getpgid(pid), input);
+					waitpid(pid, &status, WUNTRACED);
 				}
 				
 
-				currentfg.pid = pid;
-				currentfg.pgid= pid;
+				//currentfg.pid = pid;
+				//currentfg.pgid= pid;
 				//insertProc(pid, getpgid(pid), input);
 				//printf("Running: %s", searchProc(pid)->command);
-				waitpid(pid, &status, WNOHANG|WUNTRACED);
 			}
 			else
 				printf("Error: Could not create child\n");
-
 		}
 	}
-	free_hash();
+	free_queue();
+	return 0;
 }
