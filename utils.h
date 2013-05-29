@@ -5,11 +5,13 @@
 #include <stdio.h>
 #define PROC_MAX 256
 
+typedef enum {Stopped=0, Running}STATE;
+
 typedef struct BGProc{
 	pid_t pid;
 	pid_t pgid;
 	char* command;
-	typedef int state = {"stopped" =0, "running"};
+	STATE state;
 	struct BGProc* next;
 }bgproc;
 

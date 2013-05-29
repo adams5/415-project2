@@ -9,11 +9,12 @@ char** tokens;
 int status;
 
 int checkPipe(char input[], int length){
-	int i=0; 
+	int i = 0;
 	while(i < length){
 		if(input[i] == '|')
 			return i;
-		i++;
+		else
+			i++;
 	}
 	return -1;
 }
@@ -223,10 +224,10 @@ int processCommand(char* command){
 	status = checkBG(tokens);				//check for & for backgrounding a process
 	checkRed(tokens, 0);					//check for and handle redirection
     
-    printf("after checkbg, the value of tokens is:\n");
-    z = 0;
-    while(z<numTokens){printf("%s ", tokens[z]);z++;}
-    printf("\n");
+    //printf("after checkbg, the value of tokens is:\n");
+    //z = 0;
+    //while(z<numTokens){printf("%s ", tokens[z]);z++;}
+    //printf("\n");
 
     //if an & was found send the process to the background
 	if(status == 1){
@@ -238,12 +239,10 @@ int processCommand(char* command){
 		sendToFG(getpid());
 	}
 	
-	//debugging
-	int i = 0;
-	while(i < numTokens){
-		printf("Token at %i is %s\n", i, tokens[i]);
-		i++;
-	}
+	////debugging
+	//for(int i = 0; i < numTokens; i++)
+		//printf("Token at %i is %s\n", i, tokens[i]);
+	
 	status = execvp(tokens[0], tokens);
 
 	free(tokens);
