@@ -74,6 +74,8 @@ Zero
 ============================================================
 		Attribution
 ============================================================
+http://www.gnu.org/software/libc/manual/html_node/Blocking-Signals.html
+
 http://www.linuxprogrammingblog.com/code-examples/sigaction
 
 http://man7.org/linux/man-pages/man7/signal.7.html
