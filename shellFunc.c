@@ -9,9 +9,11 @@ char** tokens;
 int status;
 
 int checkPipe(char input[], int length){
-	for(int i=0; i < length; i++){
+	int i=0; 
+	while(i < length){
 		if(input[i] == '|')
 			return i;
+		i++;
 	}
 	return -1;
 }
@@ -237,9 +239,11 @@ int processCommand(char* command){
 	}
 	
 	//debugging
-	for(int i = 0; i < numTokens; i++)
+	int i = 0;
+	while(i < numTokens){
 		printf("Token at %i is %s\n", i, tokens[i]);
-	
+		i++;
+	}
 	status = execvp(tokens[0], tokens);
 
 	free(tokens);
