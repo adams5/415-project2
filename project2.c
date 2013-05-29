@@ -32,9 +32,9 @@ int main(int argc, char* args[]){
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
 	
-
-	hash_init();									//initialize hash table for processes
-	//queue_init();								//initialize queue for background messages
+	//hash_init();									//initialize hash table for processes
+	queue_init();								//initialize queue for background messages
+	msgbuffer_init();
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -46,7 +46,10 @@ int main(int argc, char* args[]){
 		//print any queued messages from background processes here
 		bgproc bgp;
 		//qpeekhead(&bgp);
-		printf("the head of the bg queue is: pid-%i\n", bgp.pid);
+		//printf("the head of the bg queue is: pid-%i\n", bgp.pid);
+		
+		//Output buffered messages from background processes
+		msgbuffer_tostring();
 		
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
@@ -151,8 +154,8 @@ int main(int argc, char* args[]){
 
 				currentfg.pid = pid;
 				currentfg.pgid= pid;
-				insertProc(pid, getpgid(pid), input);
-				printf("Running: %s", searchProc(pid)->command);
+				//insertProc(pid, getpgid(pid), input);
+				//printf("Running: %s", searchProc(pid)->command);
 				waitpid(pid, &status, WNOHANG|WUNTRACED);
 			}
 			else

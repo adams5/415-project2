@@ -7,6 +7,8 @@
 #include <sys/wait.h>
 #include "jobs.h"
 
+#define MAX_MSG 256
+
 int status;
 
 void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
@@ -16,7 +18,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		printf("entered sigchld if\n");
 		fgproc fgp;
 		bgproc bgp;
-		getBGProc(&bgp);
+		remqueue(siginfo->si_pid, &bgp);
 		getFGProc(&fgp);
 
 		//if finished
@@ -29,16 +31,21 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			{
 				//printf("enter bg of chldexit\n");
 				
-				char* bgmsg = ("Finished: ");
-				//int i =0;
-				//while(bgmsg[i] != '\0'){i++;}
-				//int j =0;
-				//char* com = bgp.command;
-				//while(com[j] != '\0'){
-					//bgmsg[i++] = com[j++];
-				//}
-				//bgmsg[i] = '\0';
+				char bgmsg[MAX_MSG];
+				char* stat = "Finished: ";
+				int i =0;
+				while(stat[i] != '\0'){
+					bgmsg[i] = stat[i];
+					i++;
+				}
+				int j =0;
+				char* com = bgp.command;
+				while(com[j] != '\0'){
+					bgmsg[i++] = com[j++];
+				}
+				bgmsg[i] = '\0';
 				printf("string in bg array: %s\n", bgmsg);
+				insert_msgbuffer(bgmsg);
 			}
 			
 		}

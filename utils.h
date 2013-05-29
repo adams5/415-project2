@@ -4,6 +4,7 @@
 #include <signal.h>
 #include <stdio.h>
 #define PROC_MAX 256
+#define MAX_BUFFER 1024
 
 typedef enum {stopped=0, running}STATE;
 typedef enum{background, foreground}VIS;
@@ -24,10 +25,12 @@ typedef struct FGProc{
 	struct FGProc* next;
 }fgproc;
 
+char** bgmsgbuffer;
+int msgbufferpos;
 bgproc** queue;
 int qhead;
 int qtail;
-bgproc* qproc;
+bgproc qproc;
 fgproc fproc;
 
 int cmp(char *s1, char *s2);
@@ -47,6 +50,8 @@ int remqueue(pid_t pid, bgproc* dproc);
 
 int qchangestate(pid_t pid, int i);
 
+int qchangevis(pid_t pid, int i);
+
 int findlaststopped(bgproc* dproc);
 
 int findqproc(pid_t pid, bgproc* dproc);
@@ -64,5 +69,12 @@ int getFGProc(fgproc* fg);
 int setBGProc(pid_t pid, pid_t pgid, char* com);
 
 int getBGProc(bgproc* fg);
+
+int msgbuffer_init();
+
+int insert_msgbuffer(char* msg);
+
+int msgbuffer_tostring();
+
 
 #endif
