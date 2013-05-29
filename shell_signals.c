@@ -13,6 +13,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
 	//if a process chages state this signal will be triggered
 	if(sigNum == SIGCHLD){
+		//waitpid(-1,&status,WNOHANG);
 		HPROC* tempProc = searchProc(siginfo->si_pid);
 		pid_t tmpPGID = tempProc->pgid;
 		//printf("Shell PID: %ld\n",(long)shellPID);
@@ -64,8 +65,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		//else, display the message
 		
-		
-		waitpid(0,&status,0);
+		waitpid(-1,&status,WNOHANG);
+		//waitpid(0,&status,0);
 	}
 	else if(sigNum == SIGTTIN){
 		printf("Recieved SIGTIN");
@@ -97,7 +98,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			printf("do something\n");
 		}
 		else{
-			printf("do nothing\n");			
+			printf("do nothing\n");	
+			waitpid(-1,&status,WUNTRACED);	
 			//the shell do nothing
 		}	
 	}

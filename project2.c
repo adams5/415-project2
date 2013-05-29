@@ -152,7 +152,7 @@ int main(int argc, char* args[]){
 				//fgp.command = input;
 				insertProc(pid, getpgid(pid), input);
 				printf("Running: %s", searchProc(pid)->command);
-				waitpid(pid, &status, 0);
+				waitpid(pid, &status, WUNTRACED);
 			}
 			else
 				printf("Error: Could not create child\n");
