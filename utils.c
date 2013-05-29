@@ -22,7 +22,7 @@ int cmp(char *s1, char *s2)
 
 int queue_init(){
 	if((long)(queue = calloc(PROC_MAX, sizeof(qproc))) != -1){
-		qhead = 0;
+		qhead = -1;
 		qtail = 0;
 		return 1;
 	}
@@ -49,9 +49,12 @@ int enqueue(pid_t pid, pid_t pgid, char* command){
 		nproc->command = command;
 		nproc->state = running;
 		nproc->visibility = foreground;
+		//printf("nproc state: %i\n", nproc->state);
 		qhead = (qhead+1)%PROC_MAX;
 		queue[qhead] = nproc;
 		printf("finished enqueing process\n");
+		//printf("pid: %i pgid: %i com: %s state: %i vis: %i\n", nproc->pid, nproc->pgid, 
+		//			nproc->command, nproc->state, nproc->visibility);
 		return 1;
 	}
 	else{
@@ -80,14 +83,19 @@ int dequeue(bgproc* dproc){
 int remqueue(pid_t pid, bgproc* dproc){
 	if(!qisempty()){
 		printf("in remqueue\n");
+		printf("qtail is: %i\n", qtail);
+		printf("qhead is: %i\n", qhead);
 		int temptail = qtail;
-		printf("first element in queue has pid: %i\n", queue[temptail]->pid);
+		//if(queue[temptail] != NULL)
+			//printf("first element in queue has pid: %i\n", queue[temptail]->pid);
+		//else
+			//printf("bg proc is null and shouldn't be\n");
 		while((queue[temptail]->pid != pid) && (temptail != qhead)){
-			printf("in loop for %i time\n", temptail);
+			//printf("in loop for %i time\n", temptail);
 			temptail = (temptail+1)%PROC_MAX;
 		}
 		
-		printf("found struct or not there\n");
+		//printf("found struct or not there\n");
 		if(queue[temptail]->pid == pid){
 			dproc->pid = queue[temptail]->pid;
 			dproc->pgid = queue[temptail]->pgid;
@@ -246,14 +254,14 @@ int getBGProc(bgproc* fg){
 }
 
 int qisempty(){
-	if(qhead==qtail)
+	if(((qhead+1)%PROC_MAX)==qtail)
 		return 1;
 	else
 		return 0;
 }
 
 int qisfull(){
-	if(qhead==(qtail-1))
+	if(((qhead+2)%PROC_MAX)==qtail)
 		return 1;
 	else
 		return 0;
