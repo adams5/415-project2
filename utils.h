@@ -5,13 +5,15 @@
 #include <stdio.h>
 #define PROC_MAX 256
 
-typedef enum {Stopped=0, Running}STATE;
+typedef enum {stopped=0, running}STATE;
+typedef enum{background, foreground}VIS;
 
 typedef struct BGProc{
 	pid_t pid;
 	pid_t pgid;
 	char* command;
 	STATE state;
+	VIS visibility;
 	struct BGProc* next;
 }bgproc;
 
@@ -26,6 +28,7 @@ bgproc** queue;
 int qhead;
 int qtail;
 bgproc* qproc;
+fgproc fproc;
 
 int cmp(char *s1, char *s2);
 
@@ -46,10 +49,20 @@ int qchangestate(pid_t pid, int i);
 
 int findlaststopped(bgproc* dproc);
 
+int findqproc(pid_t pid, bgproc* dproc);
+
 int qpeekhead(bgproc* dproc);
 
 int qisempty();
 
 int qisfull();
+
+int setFGProc(pid_t pid, pid_t pgid, char* com);
+
+int getFGProc(fgproc* fg);
+
+int setBGProc(pid_t pid, pid_t pgid, char* com);
+
+int getBGProc(bgproc* fg);
 
 #endif

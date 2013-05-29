@@ -34,7 +34,7 @@ int main(int argc, char* args[]){
 	
 
 	hash_init();									//initialize hash table for processes
-	queue_init();								//initialize queue for background messages
+	//queue_init();								//initialize queue for background messages
 
 	if(pid != 0){
 		shellPID =  getpid();
@@ -42,18 +42,12 @@ int main(int argc, char* args[]){
 	}
 	while(1){
 	
-		//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
-		sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-		sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-		sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-		
-		//block the following signals
-		signal(SIGTTOU, SIG_IGN);
-		signal(SIGINT, SIG_IGN);
-		signal(SIGQUIT, SIG_IGN);
 		
 		//print any queued messages from background processes here
-
+		bgproc bgp;
+		//qpeekhead(&bgp);
+		printf("the head of the bg queue is: pid-%i\n", bgp.pid);
+		
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
@@ -105,54 +99,61 @@ int main(int argc, char* args[]){
 				if(status > -1){
 					char p1[status];
 					char p2[length - status];
-					//debugging
-					printf("there's a pipe\n");
-					printf("the command line is: %s\n", input);
+					////debugging
+					//printf("there's a pipe\n");
+					//printf("the command line is: %s\n", input);
 
-
-					//printf("the command line is: %s\n", input[0]);
-
-					//char* p1 =  input[0];
-					//char* p2 = input[status +1];
 					input[status] = '\0';
-					printf("set pipe to null, input: %s\n", input);
+					//printf("set pipe to null, input: %s\n", input);
 
 					memcpy(p1, &input[0], status);
-					printf("copied first command to p1, input: %s\n", input);
+					//printf("copied first command to p1, input: %s\n", input);
 					memcpy(p2, &input[status +1], length - status);
-					printf("copied second command to p2, input: %s\n", input);
+					//printf("copied second command to p2, input: %s\n", input);
 
-					//debugging
-					printf("the first command is: %s\n", p1);
-					printf("the second command is: %s\n", p2);
+					////debugging
+					//printf("the first command is: %s\n", p1);
+					//printf("the second command is: %s\n", p2);
 
 					processPipe(p1, p2);
-					//free(p1);
-					//free(p2);
 				}
 				//if no pipe, run single command
 				else if(status == -1){
-					//numTokens = getTokens(input, tokens);	//create array of tokens
-					//status = checkBG(tokens);				//check for & for backgrounding a process
-					//checkRed(tokens, 0);					//check for and handle redirection
-					//execute(tokens, 0, status);			//run single command
-					//lastJobCmd = input;
-					//printf("lastJobCmd: %s\n", lastJobCmd);
-					//printf("input: %s\n",input);
 					processCommand(input);
-					//waitpid(pid,NULL,0);
 				}
 				_exit(0);
 			}
 			//parent
 			else if(pid > 0){
+				//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
+				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
+				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+				
+				//block the following signals
+				signal(SIGTTOU, SIG_IGN);
+				signal(SIGINT, SIG_IGN);
+				signal(SIGQUIT, SIG_IGN);
+				
 				setpgid(pid, pid);
+				status = checkBG(input);
+				if(status == 1){
+					//printf("sending process to bg\n");
+					sendToBG(pid, input);
+					//qchangevis(pid, 0);
+					setBGProc(pid, getpgid(pid), input);
+				}
+				else
+				{
+					setFGProc(pid, getpgid(pid), input);
+				}
+				
+
 				currentfg.pid = pid;
 				currentfg.pgid= pid;
-				//fgp.command = input;
 				insertProc(pid, getpgid(pid), input);
 				printf("Running: %s", searchProc(pid)->command);
-				waitpid(pid, &status, WUNTRACED);
+				waitpid(pid, &status, WNOHANG|WUNTRACED);
 			}
 			else
 				printf("Error: Could not create child\n");

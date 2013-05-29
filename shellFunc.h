@@ -13,7 +13,7 @@ void checkRed(char** tokens, int proc);
 
 int getTokens(char* input, char** tokens);
 
-int checkBG(char** command);
+int checkBG(char* command);
 
 int execute(char** command, int nTokens, int bg);
 

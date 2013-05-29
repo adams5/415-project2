@@ -1,6 +1,6 @@
 #include "shell_signals.h"
 #include "global.h"
-//#include "process_hash.h"
+#include "process_hash.h"
 #include <unistd.h>
 #include <signal.h>
 #include <stdio.h>
@@ -13,31 +13,36 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
 	//if a process chages state this signal will be triggered
 	if(sigNum == SIGCHLD){
-		//waitpid(-1,&status,WNOHANG);
-		HPROC* tempProc = searchProc(siginfo->si_pid);
-		pid_t tmpPGID = tempProc->pgid;
-		//printf("Shell PID: %ld\n",(long)shellPID);
-		
-		printf("PID: %ld PGID: %ld and %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, (long)tmpPGID, siginfo->si_code);
-		//printf("PID: %ld PGID: %ld changed state to %i\n",(long)siginfo->si_pid, (long)tmpPGID, siginfo->si_code);
-		//detect the status of the process and generate a message
-		
+		printf("entered sigchld if\n");
+		//HPROC* tempProc = searchProc(siginfo->si_pid);
+		//pid_t tmpPGID = tempProc->pgid;
+		fgproc fgp;
+		bgproc bgp;
+		getBGProc(&bgp);
+		getFGProc(&fgp);
+		//findqproc(siginfo->si_pid, &bgp);
+
 		//if finished
 		if(siginfo->si_code == CLD_EXITED){
-			if(siginfo->si_pid == currentfg.pid){
-				printf("\nFinished: %s", searchProc(tmpPGID)->command);
-				
-				//switch TC back to the shell
-				sendShellToFG();
+			//getFGProc(&fg);
+			printf("si_pid: %i fgp.pid: %i tcget: %i\n", siginfo->si_pid, fgp.pid, tcgetpgrp(0));
+			if(siginfo->si_pid == fgp.pid){
+				printf("\nFinished in fg: %s\n%s", fgp.command, shname);
 			}
 			else
 			{
-				removeProc(tmpPGID);								//remove procedure from hashtable
-				printf("Finished: ");
-				//char* merge = malloc(sizeof com + sizeof stat);
-				bgproc currentproc;									//create temp proc struct
-				remqueue(siginfo->si_pid, &currentproc);			//remove proc from queue
-				printf("%s\n", currentproc.command);
+				printf("enter bg of chldexit\n");
+				
+				char* bgmsg = ("Finished: ");
+				int i =0;
+				while(bgmsg[i] != '\0'){i++;}
+				int j =0;
+				char* com = bgp.command;
+				while(com[j] != '\0'){
+					bgmsg[i++] = com[j++];
+				}
+				bgmsg[i] = '\0';
+				printf("string in bg array: %s\n", bgmsg);
 			}
 			
 		}
@@ -45,13 +50,13 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		else if(siginfo->si_code == CLD_STOPPED){
 			
 			//let the user know what process stopped
-			printf("\nStopped: %s", searchProc(tmpPGID)->command);
+			printf("\nStopped: %s", fgp.command);
 			
 			//set the most recent stopped BG process
 			setLastStoppedBG(siginfo->si_pid);
 			
 			//stop child process
-			if((status = killpg(tempProc->pgid, SIGTSTP)) == -1){
+			if((status = killpg(fgp.pgid, SIGTSTP)) == -1){
 				perror("Child signal failed");
 			}
 			else
@@ -60,14 +65,14 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			}
 			
 			//send stop signal to child
-			killpg(tempProc->pgid, SIGTSTP);
+			killpg(fgp.pgid, SIGTSTP);
 			
 			//add process to background queue
-			enqueue(tempProc->pid, tempProc->pgid, tempProc->command);
-			qchangestate(tempProc->pid, 0);
+			//enqueue(fgp.pid, fgp.pgid, fgp.command);
+			//qchangestate(fgp.pid, 0);
 			
 			//switch TC back to the shell
-			sendShellToFG();
+			//sendShellToFG();
 		}
 		//if continued
 		else if(siginfo->si_code == CLD_CONTINUED)
@@ -82,7 +87,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		//else, display the message
 		
-		waitpid(-1,&status,WNOHANG);
+		waitpid(-1,&status,WUNTRACED|WNOHANG);
 		//waitpid(0,&status,0);
 	}
 	else if(sigNum == SIGTTIN){
@@ -123,7 +128,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 	//if shell is told to continue, send to foreground
 	else if(sigNum == SIGCONT){
 		printf("SIGCONT\n");
-		sendShellToFG();
+		//sendShellToFG();
 			
 	
 		//signal(SIGTTOU, SIG_DFL);
