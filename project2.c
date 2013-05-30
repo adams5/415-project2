@@ -61,12 +61,24 @@ int main(int argc, char* args[]){
 		//int numTokens = 0;							//value to hold how many tokens in input
 		int status = 0;
 
+		//create new and old signal masks
+		sigset_t newset;
+		sigset_t oldset;
+		
+		//add signals to newset to block with signal mask
+		sigemptyset(&newset);
+		sigaddset(&newset, SIGINT);
+		sigaddset(&newset, SIGTTOU);
+		sigaddset(&newset, SIGTTIN);
+		sigaddset(&newset, SIGTSTP);
+		
+		//block signals with signal mask while reading user input and after fork
+		sigprocmask(SIG_BLOCK, &newset, &oldset);
+		
 		//read input from command line
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
-		//printf("bytes read: %i\n", status);
 
 		//Check if read failed
-
 		if(status == -1){								//if failed to read, output error
 			perror("READ ERROR");
 		}
@@ -94,11 +106,27 @@ int main(int argc, char* args[]){
 				fg();
 				continue;
 			}
+			else if(input[0] == SIGTSTP){
+				fg();
+				continue;
+			}
+			//else if(input[0] = '^'){
+				//printf("Invalid command\n");
+				//continue;
+			//}
            // lastJobCmd = input;
+
+			//fork process
 			pid = fork();
 
+		
 			//child
 			if(pid==0){
+				//unblock signalmask for forking of child and parent
+				sigprocmask(SIG_UNBLOCK, &newset, &oldset);
+
+				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+
 				//check for a pipe
 				status = checkPipe(input, status);			//check for pipe in command line input
 
@@ -132,16 +160,17 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
-				//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
-				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state
 				//block the following signals
+				signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
 				signal(SIGTTOU, SIG_IGN);
 				signal(SIGINT, SIG_IGN);
 				signal(SIGQUIT, SIG_IGN);
 				//signal(SIGTTIN, SIG_IGN);
+				
+				//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
+				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
+				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state
 
 				setpgid(pid, pid);
 				status = checkBG(input);
