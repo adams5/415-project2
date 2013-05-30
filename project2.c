@@ -125,7 +125,6 @@ int main(int argc, char* args[]){
 				//unblock signalmask for forking of child and parent
 				sigprocmask(SIG_UNBLOCK, &newset, &oldset);
 
-				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 
 				//check for a pipe
 				status = checkPipe(input, status);			//check for pipe in command line input
@@ -161,13 +160,14 @@ int main(int argc, char* args[]){
 			//parent
 			else if(pid > 0){
 				//block the following signals
-				signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
+				//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
 				signal(SIGTTOU, SIG_IGN);
 				signal(SIGINT, SIG_IGN);
 				signal(SIGQUIT, SIG_IGN);
 				//signal(SIGTTIN, SIG_IGN);
 				
 				//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
+				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
 				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state

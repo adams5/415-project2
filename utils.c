@@ -262,24 +262,19 @@ int removehead(struct BGProc* dproc){
 		dproc->state = qhead->state;
 		dproc->visibility = qhead->visibility;
 
-		printf("pid's copied, preparing to deep copy command\n");
 		//deep copy command string
 		int i = 0;
 		while(qhead->command[i] != '\0'){
 			dproc->command[i] = qhead->command[i];
 			i++;
 		}
-		printf("deep copy complete, setting explicit null\n");
 		dproc->command[i] = '\0';			//explicit null terminate string
 		
-		printf("null set, preparing to reset pointers\n");
 		//remove head and release memory allocation
 		struct BGProc* temphead = qhead;
 		if(qhead->next != NULL)
 			qhead->next->prev = qhead->prev;
 		qhead = qhead->next;
-		
-		printf("pointers set, free'ing memory\n");
 		free(temphead);
 
 		return 1;
