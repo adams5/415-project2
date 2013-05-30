@@ -29,66 +29,36 @@
 
 
 int main(int argc, char* args[]){
-	//char** tokens;									//declare array of tokens
-	shname = "kinda-sh";						//initialize command line prompt string
-	int length;
-	pid_t pid = -1;
-
+	shname = "kinda-sh";	//initialize command line prompt string
+	int length;				//length of input
+	pid_t pid = -1;			//init a pid that will store the child pid
 
 	memset (&sigAction, '\0', sizeof(sigAction)); 	//allocate memory for the  signal action struct
-
-	sigAction.sa_sigaction = signal_handler; 			//set the handler for the signal action struct
-
+	sigAction.sa_sigaction = signal_handler; 		//set the handler for the signal action struct
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
-		////create shellset and childset signal masks
-		sigset_t shellset;
-		sigset_t childset;
-		sigset_t parentset;
-		
-		//set up child empty mask
-		sigemptyset(&childset);
-		
-		//add signals to shellset to block with signal mask
-		sigemptyset(&shellset);
-		sigaddset(&shellset, SIGTERM);
-		sigaddset(&shellset, SIGTSTP);
-		sigaddset(&shellset, SIGCHLD);
-		
-		//add signals to parentset to block with signal mask
-		sigemptyset(&parentset);
-		sigaddset(&parentset, SIGTERM);
-		sigaddset(&parentset, SIGTSTP);
-		
-		//set initial mask to emtpy set
-		//sigprocmask(SIG_SETMASK, &childset, NULL);
 
-	queue_init();								//initialize queue for background messages
-	msgbuffer_init();
 
+	queue_init();		//initialize queue for background process
+	msgbuffer_init();	//initialize queue for messages waiting to be printed
+
+	//if we're not in the child process
 	if(pid != 0){
-		shellPID =  getpid();
-		printf("shellPID: %i\n",shellPID);
+		shellPID = getpid();				//store the shellPID
 	}
 	while(1){
-		//block signals with signal mask while reading user input and after fork
-		//sigprocmask(SIG_SETMASK, &shellset, NULL);
-
+		
 		//Output buffered messages from background processes
 		msgbuffer_tostring();
 
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
-		//tokens = calloc(MAX_TOKENS, sizeof *tokens);//allocate memory for array for tokens
-		//int numTokens = 0;							//value to hold how many tokens in input
-		int status = 0;
+		int status = 0;								//status for reading input
 
-					sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-			sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-		////signals for the shell to ignore
-		//signal(SIGTERM, SIG_IGN);
-		//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell		
+		sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+		sigaction(SIGINT, &sigAction, NULL);	//CTRL-C kill the process as long as it's not the shell
+	
 		
 		//read input from command line
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
@@ -103,7 +73,7 @@ int main(int argc, char* args[]){
 		}
 		else{
 			input[status] = '\0';	//else, add null terminating char to input
-			length = status;
+			length = status;		//set the legth of to be num bytes read
 
 			//check for fg, bg, help or exit
 			if(cmp(input,"exit\n")){
@@ -125,55 +95,28 @@ int main(int argc, char* args[]){
 				fg();
 				continue;
 			}
-			//else if(input[0] = '^'){
-				//printf("Invalid command\n");
-				//continue;
-			//}
-           // lastJobCmd = input;
 
 			//fork process
 			pid = fork();
-
 		
-			//child
+			//child process
 			if(pid==0){
-				//sigprocmask(SIG_SETMASK, &childset, NULL);
-	
-				////return these signals to default action
-				//signal(SIGTERM, SIG_DFL);
-				//signal(SIGTSTP, SIG_DFL);	//CTRL-Z stops the process as long as it's not shell
 
-			//add signal handlers for child
-
-
-			//unblock signalmask for forking of child and parent
-			//sigprocmask(SIG_SETMASK, &childset, NULL);
-
-
-				//check for a pipe
-				status = checkPipe(input, status);			//check for pipe in command line input
+				//check for a pipe, 1 if pipe, -1 if no pipe
+				status = checkPipe(input, status);
 
 				//if there's a pipe
 				if(status > -1){
-					char p1[status];
-					char p2[length - status];
-					////debugging
-					//printf("there's a pipe\n");
-					//printf("the command line is: %s\n", input);
+					char p1[status]; 			//space for the first cmd in the pipeline
+					char p2[length - status]; 	//space for the second cmd in the pipeline
+					
+					input[status] = '\0'; 		//teminate the input
 
-					input[status] = '\0';
-					//printf("set pipe to null, input: %s\n", input);
+					//Prof. Butler told another student to look into using memcpy on piazza
+					memcpy(p1, &input[0], status);	//copy the first cmd
+					memcpy(p2, &input[status +1], length - status); //copy the second command
 
-					memcpy(p1, &input[0], status);
-					//printf("copied first command to p1, input: %s\n", input);
-					memcpy(p2, &input[status +1], length - status);
-					//printf("copied second command to p2, input: %s\n", input);
-
-					////debugging
-					//printf("the first command is: %s\n", p1);
-					//printf("the second command is: %s\n", p2);
-
-					processPipe(p1, p2);
+					processPipe(p1, p2); //process the pipe
 				}
 				//if no pipe, run single command
 				else if(status == -1){
@@ -184,46 +127,25 @@ int main(int argc, char* args[]){
 			//parent
 			else if(pid > 0){
 				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-				//sigprocmask(SIG_SETMASK, &parentset, NULL);
-				//block the following signals
-				signal(SIGTTOU, SIG_IGN);
-				signal(SIGINT, SIG_IGN);
-				signal(SIGQUIT, SIG_IGN);
-				//signal(SIGTERM, SIG_IGN);
-				//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
-				//signal(SIGTTIN, SIG_IGN);
-				
-				////sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
-				//sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-				//sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state
 
-				setpgid(pid, pid);
-				status = checkBG(input);
+				setpgid(pid, pid);		 //set the group ID of the single process to itself
+				status = checkBG(input); //check for an &
+				
+				//if & then send the process to the background and wait without hanging
 				if(status == 1){
-					//printf("sending process to bg\n");
-					//printf("command for fork is: %s\n", input);
-					//qchangevis(pid, 0);
 					sendToBG(pid, input);
-					//setBGProc(pid, getpgid(pid), input);
 					waitpid(pid, &status, WNOHANG|WUNTRACED);
 				}
-				else
-				{
+				//else set the process to the foreground
+				else{
 					setFGProc(pid, getpgid(pid), input);
 					waitpid(pid, &status, WUNTRACED);
 				}
-
-
-				//currentfg.pid = pid;
-				//currentfg.pgid= pid;
-				//insertProc(pid, getpgid(pid), input);
-				//printf("Running: %s", searchProc(pid)->command);
 			}
 			else
 				printf("Error: Could not create child\n");
 		}
 	}
-	free_queue();
+	free_queue(); //deallocate space
 	return 0;
 }
