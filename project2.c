@@ -61,7 +61,7 @@ int main(int argc, char* args[]){
 		sigaddset(&parentset, SIGTSTP);
 		
 		//set initial mask to emtpy set
-		sigprocmask(SIG_SETMASK, &childset, NULL);
+		//sigprocmask(SIG_SETMASK, &childset, NULL);
 
 	queue_init();								//initialize queue for background messages
 	msgbuffer_init();
@@ -72,7 +72,7 @@ int main(int argc, char* args[]){
 	}
 	while(1){
 		//block signals with signal mask while reading user input and after fork
-		sigprocmask(SIG_SETMASK, &shellset, NULL);
+		//sigprocmask(SIG_SETMASK, &shellset, NULL);
 
 		//Output buffered messages from background processes
 		msgbuffer_tostring();
@@ -84,7 +84,8 @@ int main(int argc, char* args[]){
 		//int numTokens = 0;							//value to hold how many tokens in input
 		int status = 0;
 
-		
+					sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+			sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 		////signals for the shell to ignore
 		//signal(SIGTERM, SIG_IGN);
 		//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell		
@@ -143,11 +144,10 @@ int main(int argc, char* args[]){
 				//signal(SIGTSTP, SIG_DFL);	//CTRL-Z stops the process as long as it's not shell
 
 			//add signal handlers for child
-			sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-			sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
+
 
 			//unblock signalmask for forking of child and parent
-			sigprocmask(SIG_SETMASK, &childset, NULL);
+			//sigprocmask(SIG_SETMASK, &childset, NULL);
 
 
 				//check for a pipe
@@ -184,13 +184,13 @@ int main(int argc, char* args[]){
 			//parent
 			else if(pid > 0){
 				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-				sigprocmask(SIG_SETMASK, &parentset, NULL);
+				//sigprocmask(SIG_SETMASK, &parentset, NULL);
 				//block the following signals
 				signal(SIGTTOU, SIG_IGN);
 				signal(SIGINT, SIG_IGN);
 				signal(SIGQUIT, SIG_IGN);
-				signal(SIGTERM, SIG_IGN);
-				signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
+				//signal(SIGTERM, SIG_IGN);
+				//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
 				//signal(SIGTTIN, SIG_IGN);
 				
 				////sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need

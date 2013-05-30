@@ -142,22 +142,23 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 					
 		//printf("\nCTRL-Z, siginfo->si_pid: %ld\n",(long) siginfo->si_pid);
 		//printf("\nCTRL-Z, getpid(): %ld\n",(long) getpid());
-		//printf("tcgetpgrp(0): %ld\n", tcgetpgrp(0));
+		//printf("tcgetpgrp(0): %ld\n",(long) tcgetpgrp(0));
+		//printf("fproc.pid: %ld\n", (long)fproc.pid);
 		
 		
 		//killpg(siginfo->si_pid,SIGSTOP);
-		//if(fproc.pid != shellPID){
+		if(fproc.pid != shellPID && fproc.pid != 0){
 			////not the shell, do something
 			//printf("child stopped\n");
 			////siginfo->si_code = CLD_STOPPED;
 			//kill(shellPID, SIGCHLD);
-			////kill(fproc.pid, SIGTSTP);
-		//}
-		//else{
-			printf("do nothing\n");	
-			waitpid(-1,&status,WUNTRACED);	
+			kill(fproc.pid, SIGTSTP);
+		}
+		else{
+			//printf("do nothing\n");	
+			waitpid(-1,&status,WUNTRACED|WNOHANG);	
 			//the shell do nothing
-		//}	
+		}	
 	}
 	//if shell is told to continue, send to foreground
 	else if(sigNum == SIGCONT){
