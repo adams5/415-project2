@@ -369,7 +369,7 @@ int findqproc(pid_t pid, bgproc* dproc){
 		//while iterator is not null and process not found, search
 		while(tempHead != NULL){
 			if(tempHead->pid == pid){
-				dproc = tempHead;
+				*dproc = *tempHead;
 				return 1;
 			}
 			else
@@ -498,7 +498,7 @@ int setFGProc(pid_t pid, pid_t pgid, char* com){
 */
 int getFGProc(struct FGProc* fg){
 	//if fgproc is not null, copy data to param
-	if(fproc.pid > 0){
+	if(fg != NULL){
 		//copy fproc values
 		fg->pid = fproc.pid;
 		fg->pgid = fproc.pgid;
