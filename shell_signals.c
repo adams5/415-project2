@@ -24,8 +24,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 	//if a process chages state this signal will be triggered
 	if(sigNum == SIGCHLD){
 		if(fgp.pid != siginfo->si_pid){
-			printf("searching for pid: %i\n", siginfo->si_pid);
-			remqueue(siginfo->si_pid, &bgp);
+			//printf("searching for pid: %i\n", siginfo->si_pid);
+			findqproc(siginfo->si_pid, &bgp);
 			printf("proc %i has a command of: %s\n", bgp.pid, bgp.command);
 		}
 
@@ -62,6 +62,8 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			
 			//let the user know what process stopped
 			printf("\nStopped: %s", fgp.command);
+			
+			printf("stopped proc pid: %i and com: %s\n", fproc.pid, fproc.command);
 						
 			//set the most recent stopped BG process
 			sendToBG(fproc.pid, fproc.command);
@@ -72,7 +74,12 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		//if continued
 		}
 		else if(siginfo->si_code == CLD_CONTINUED){
-			printf("\nRunning: %i", lastStoppedBG.pgid);
+			if(siginfo->si_pid == fgp.pid)
+				printf("\nRunning: %s", fgp.command);
+			else if(siginfo->si_pid == bgp.pid)
+				printf("\nRunning: %s", bgp.command);
+			else
+				printf("No Information on Process Available\n");
 		}
 		else if(siginfo->si_code == SIGTERM){
 			setFGProc(shellPID, shellPID, "Shell");

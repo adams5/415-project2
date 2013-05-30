@@ -101,6 +101,7 @@ int enqueue(pid_t pid, pid_t pgid, char* command){
 	}
 	//Memory allocation failed
 	else{
+		printf("Memory alocation failed\n");
 		return -1;
 	}
 }
