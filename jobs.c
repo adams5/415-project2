@@ -53,10 +53,11 @@ void fg(){
 void bringLastBGtoFG(){
 	int status;
 	
-	bgproc last;				//temporarily hold onto foregrounding process
+	struct BGProc last;				//temporarily hold onto foregrounding process
 	
 	//remove last backgrounded process from queue and set foreground info to it
 	removehead(&last);
+	setFGProc(last.pid, last.pgid, last.command);
 	
 		//send a SIGCONT in case the job is stopped
 	if(killpg(last.pgid,SIGCONT) == -1)
@@ -64,7 +65,7 @@ void bringLastBGtoFG(){
 	else{
 		tcsetpgrp(0, last.pgid);
 		
-		setFGProc(last.pid, last.pgid, last.command);
+		//setFGProc(last.pid, last.pgid, last.command);
 
 		waitpid(last.pid, &status, WUNTRACED);
 
