@@ -146,16 +146,18 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		
 		
 		//killpg(siginfo->si_pid,SIGSTOP);
-		if(fproc.pid != shellPID){
-			//not the shell, do something
-			printf("child stopped\n");
-			kill(fproc.pid, SIGTSTP);
-		}
-		else{
+		//if(fproc.pid != shellPID){
+			////not the shell, do something
+			//printf("child stopped\n");
+			////siginfo->si_code = CLD_STOPPED;
+			//kill(shellPID, SIGCHLD);
+			////kill(fproc.pid, SIGTSTP);
+		//}
+		//else{
 			printf("do nothing\n");	
 			waitpid(-1,&status,WUNTRACED);	
 			//the shell do nothing
-		}	
+		//}	
 	}
 	//if shell is told to continue, send to foreground
 	else if(sigNum == SIGCONT){

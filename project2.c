@@ -41,6 +41,27 @@ int main(int argc, char* args[]){
 
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
+		////create shellset and childset signal masks
+		sigset_t shellset;
+		sigset_t childset;
+		sigset_t parentset;
+		
+		//set up child empty mask
+		sigemptyset(&childset);
+		
+		//add signals to shellset to block with signal mask
+		sigemptyset(&shellset);
+		sigaddset(&shellset, SIGTERM);
+		sigaddset(&shellset, SIGTSTP);
+		sigaddset(&shellset, SIGCHLD);
+		
+		//add signals to parentset to block with signal mask
+		sigemptyset(&parentset);
+		sigaddset(&parentset, SIGTERM);
+		sigaddset(&parentset, SIGTSTP);
+		
+		//set initial mask to emtpy set
+		sigprocmask(SIG_SETMASK, &childset, NULL);
 
 	queue_init();								//initialize queue for background messages
 	msgbuffer_init();
@@ -50,6 +71,8 @@ int main(int argc, char* args[]){
 		printf("shellPID: %i\n",shellPID);
 	}
 	while(1){
+		//block signals with signal mask while reading user input and after fork
+		sigprocmask(SIG_SETMASK, &shellset, NULL);
 
 		//Output buffered messages from background processes
 		msgbuffer_tostring();
@@ -61,19 +84,10 @@ int main(int argc, char* args[]){
 		//int numTokens = 0;							//value to hold how many tokens in input
 		int status = 0;
 
-		//create new and old signal masks
-		sigset_t newset;
-		sigset_t oldset;
 		
-		//add signals to newset to block with signal mask
-		sigemptyset(&newset);
-		sigaddset(&newset, SIGINT);
-		sigaddset(&newset, SIGTTOU);
-		sigaddset(&newset, SIGTTIN);
-		sigaddset(&newset, SIGTSTP);
-		
-		//block signals with signal mask while reading user input and after fork
-		sigprocmask(SIG_BLOCK, &newset, &oldset);
+		////signals for the shell to ignore
+		//signal(SIGTERM, SIG_IGN);
+		//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell		
 		
 		//read input from command line
 		status = read(STDIN_FILENO, input, MAX_BYTES);	//read input and store return value
@@ -122,8 +136,18 @@ int main(int argc, char* args[]){
 		
 			//child
 			if(pid==0){
-				//unblock signalmask for forking of child and parent
-				sigprocmask(SIG_UNBLOCK, &newset, &oldset);
+				//sigprocmask(SIG_SETMASK, &childset, NULL);
+	
+				////return these signals to default action
+				//signal(SIGTERM, SIG_DFL);
+				//signal(SIGTSTP, SIG_DFL);	//CTRL-Z stops the process as long as it's not shell
+
+			//add signal handlers for child
+			sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+			sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
+
+			//unblock signalmask for forking of child and parent
+			sigprocmask(SIG_SETMASK, &childset, NULL);
 
 
 				//check for a pipe
@@ -159,17 +183,19 @@ int main(int argc, char* args[]){
 			}
 			//parent
 			else if(pid > 0){
+				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+				sigprocmask(SIG_SETMASK, &parentset, NULL);
 				//block the following signals
-				//signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
 				signal(SIGTTOU, SIG_IGN);
 				signal(SIGINT, SIG_IGN);
 				signal(SIGQUIT, SIG_IGN);
+				signal(SIGTERM, SIG_IGN);
+				signal(SIGTSTP, SIG_IGN);	//CTRL-Z stops the process as long as it's not shell
 				//signal(SIGTTIN, SIG_IGN);
 				
-				//sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
-				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
-				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
-				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
+				////sigaction (SIGCONT, &sigAction, NULL);	//will resume execution of the recieving process, don't think we need
+				//sigaction(SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
+				//sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state
 
 				setpgid(pid, pid);
