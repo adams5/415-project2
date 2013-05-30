@@ -3,6 +3,7 @@
 //#include "process_hash.h"
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 void bg(){	
 	struct BGProc lsproc;
@@ -32,6 +33,8 @@ void fg(){
 		
 	//bring the most recetly backgrounded job to the foreground
 	bringLastBGtoFG();
+	
+		//tcsetpgrp(0, shellPID);;
 
 }
 
@@ -48,16 +51,32 @@ void fg(){
 //}
 
 void bringLastBGtoFG(){
+	int status;
+	
 	bgproc last;				//temporarily hold onto foregrounding process
 	
 	//remove last backgrounded process from queue and set foreground info to it
 	removehead(&last);
-	tcsetpgrp(0, last.pgid);
-	setFGProc(last.pid, last.pgid, last.command);
-
-	//send a SIGCONT in case the job is stopped
+	
+		//send a SIGCONT in case the job is stopped
 	if(killpg(last.pgid,SIGCONT) == -1)
 		perror("killpg() error");	
+	else{
+		tcsetpgrp(0, last.pgid);
+		
+		setFGProc(last.pid, last.pgid, last.command);
+
+		waitpid(last.pid, &status, WUNTRACED);
+
+		tcsetpgrp(0, shellPID);
+		tcsetpgrp(1, shellPID);	
+		tcsetpgrp(2, shellPID);		
+	}	
+	//setFGProc(shellPID, last.pgid, last.command);
+
+	//send a SIGCONT in case the job is stopped
+	//if(killpg(last.pgid,SIGCONT) == -1)
+	//	perror("killpg() error");	
 
 	//currentfg.pgid = last.pgid;
 	//currentfg.pid = last.pid;

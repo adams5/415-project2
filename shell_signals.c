@@ -13,13 +13,16 @@ int status;
 
 void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
-	//if a process chages state this signal will be triggered
-	if(sigNum == SIGCHLD){
-		//printf("entered sigchld if\n");
+			//printf("entered sigchld if\n");
 		fgproc fgp;
 		getFGProc(&fgp);
 		
 		bgproc bgp;
+
+				//printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
+	
+	//if a process chages state this signal will be triggered
+	if(sigNum == SIGCHLD){
 		if(fgp.pid != siginfo->si_pid){
 			printf("searching for pid: %i\n", siginfo->si_pid);
 			remqueue(siginfo->si_pid, &bgp);
@@ -30,7 +33,7 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		if(siginfo->si_code == CLD_EXITED){
 			//printf("si_pid: %i fgp.pid: %i tcget: %i\n", siginfo->si_pid, fgp.pid, tcgetpgrp(0));
 			if(siginfo->si_pid == fgp.pid){
-				printf("Finished in fg: %s\n", fgp.command);
+				printf("Finished: %s\n", fgp.command);
 			}
 			else
 			{
@@ -64,35 +67,10 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			sendToBG(fproc.pid, fproc.command);
 			qchangestate(siginfo->si_pid, 0);
 			
-			
-			//enqueue(fproc.pid, fproc.pgid, fproc.command);
-			//change
-			//setLastStoppedBG(siginfo->si_pid);
-			
-			
-			
 			printf("child stopped\n");
 			
-			//stop child process
-			//if((status = killpg(fgp.pgid, SIGTSTP)) == -1){
-				//perror("Child signal failed");
-			//}
-			//else
-			//{
-				//printf("Sent stop signal to child\n");
-			//}
-			
-			////send stop signal to child
-			//killpg(fgp.pgid, SIGTSTP);
-			
-			//add process to background queue
-			//enqueue(fgp.pid, fgp.pgid, fgp.command);
-			//qchangestate(fgp.pid, 0);
-			
-			//switch TC back to the shell
-			//sendShellToFG();
-		}
 		//if continued
+		}
 		else if(siginfo->si_code == CLD_CONTINUED){
 			printf("\nRunning: %i", lastStoppedBG.pgid);
 		}
@@ -100,8 +78,34 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 			setFGProc(shellPID, shellPID, "Shell");
 			printf("\nTerminated: %i", currentfg.pgid);
 		}
+		else if(siginfo->si_code == SIGTTIN){
+						//sendToBG(fproc.pid, fproc.command);
+			//if(killpg(shellPID,SIGSTOP) == -1)
+				//perror("killpg() error");	
+			
+			//let the user know what process stopped
+			//printf("\nStopped: %s", fgp.command);
+			
+			//sendToBG(fproc.pid, fproc.command);
+
+			//sendToFG(sh)
+			//qchangestate(siginfo->si_pid, 0);
+		}
+		else if(siginfo->si_code == SIGTTOU){
+						//sendToBG(fproc.pid, fproc.command);
+			//if(killpg(shellPID,SIGSTOP) == -1)
+				//perror("killpg() error");	
+			
+			//let the user know what process stopped
+					//	printf("Recieved SIGTOU");
+			//
+			//sendToBG(fproc.pid, fproc.command);
+
+			//sendToFG(sh)
+			//qchangestate(siginfo->si_pid, 0);
+		}		
 		else
-			printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
+			//printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
 		
 		
 		//if the process is in the background, queue  the  message
@@ -112,7 +116,13 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		//waitpid(0,&status,0);
 	}
 	else if(sigNum == SIGTTIN){
-		printf("Recieved SIGTIN");
+		//let the user know what process stopped
+			printf("SIGTTIN found : %s\n", fgp.command);
+						
+			//set the most recent stopped BG process
+			//sendToBG(fproc.pid, fproc.command);
+			//qchangestate(siginfo->si_pid, 0);
+			//waitpid(-1, &status, WNOHANG|WUNTRACED);
 	}
 	else if(sigNum == SIGTTOU){
 		printf("Recieved SIGTOU");

@@ -13,9 +13,19 @@
 ///check into free(tok)							--DONE, WASN'T NEEDED. ACTUALLY MADE IT WORSE
 ///handle '\n' attached to string arg			--DONE, TAKEN CARE OF BY TOKENIZER
 ///possibly make token array non-global			--DONE
-///need to check the wait commands in project2 
-///	and shellFunc to make sure being used 
+///need to check the wait commands in project2
+///	and shellFunc to make sure being used
 ///	correctly after signalling added
+
+
+///delete old code
+///fix makfile
+///replace constant values with flags
+///comment
+///clean up includes
+///fix ignored signals to suspend or block(delayed)
+///valgrind for memory leaks
+///fix redirect/cat
 
 
 int main(int argc, char* args[]){
@@ -23,15 +33,15 @@ int main(int argc, char* args[]){
 	shname = "kinda-sh";						//initialize command line prompt string
 	int length;
 	pid_t pid = -1;
-	 
+
 
 	memset (&sigAction, '\0', sizeof(sigAction)); 	//allocate memory for the  signal action struct
-	
+
 	sigAction.sa_sigaction = signal_handler; 			//set the handler for the signal action struct
-	
+
 	sigAction.sa_flags = SA_SIGINFO | SA_RESTART;	//flag that we want to collect information about the process when a signal is caught
 													//and to restart interrupted syscalls
-	
+
 	queue_init();								//initialize queue for background messages
 	msgbuffer_init();
 
@@ -40,10 +50,10 @@ int main(int argc, char* args[]){
 		printf("shellPID: %i\n",shellPID);
 	}
 	while(1){
-			
+
 		//Output buffered messages from background processes
 		msgbuffer_tostring();
-		
+
 		printf("%s> ", shname);						//output command line prompt
 		fflush(stdout);								//flush the print buffer
 		char input[MAX_BYTES];						//create buffer for input
@@ -56,6 +66,7 @@ int main(int argc, char* args[]){
 		//printf("bytes read: %i\n", status);
 
 		//Check if read failed
+
 		if(status == -1){								//if failed to read, output error
 			perror("READ ERROR");
 		}
@@ -125,12 +136,13 @@ int main(int argc, char* args[]){
 				sigaction(SIGTERM, &sigAction, NULL);	//CTRL-C
 				sigaction (SIGTSTP, &sigAction, NULL);	//CTRL-Z stops the process as long as it's not shell
 				sigaction(SIGCHLD, &sigAction, NULL);	//child process changes state
-				
+				//sigaction(SIGTTIN, &sigAction, NULL);	//child process changes state
 				//block the following signals
 				signal(SIGTTOU, SIG_IGN);
 				signal(SIGINT, SIG_IGN);
 				signal(SIGQUIT, SIG_IGN);
-				
+				//signal(SIGTTIN, SIG_IGN);
+
 				setpgid(pid, pid);
 				status = checkBG(input);
 				if(status == 1){
@@ -146,7 +158,7 @@ int main(int argc, char* args[]){
 					setFGProc(pid, getpgid(pid), input);
 					waitpid(pid, &status, WUNTRACED);
 				}
-				
+
 
 				//currentfg.pid = pid;
 				//currentfg.pgid= pid;
