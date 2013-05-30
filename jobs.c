@@ -1,23 +1,23 @@
 #include "jobs.h"
 #include "global.h"
-//#include "process_hash.h"
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
 
+/**
+ * check and try to send SIGCONT to the last stopped BG job
+*/
 void bg(){	
 	struct BGProc lsproc;
-	
+	//find the last stopped process
 	if(findlaststopped(&lsproc) == 1){
+		//try to send a SIGCONT
 		if(killpg(lsproc.pgid,SIGCONT) == -1)
 			perror("killpg() error");
 		else
 		{
+			//if signal is sent change the proc state
 			qchangestate(lsproc.pid, 1);
-			//setLastBG(lsproc.pid, lsproc.pgid, lsproc);	
-			
-			//remqueue(lsproc.pid, NULL);
-			//enqueue(lsproc.pid, lsproc.pgid, lsproc.command);
 		}
 	}
 	else
@@ -26,30 +26,14 @@ void bg(){
 	}
 }
 
-
+//wrapper function to call bringLastBGtoFG()
 void fg(){
-	//bgproc lproc;
-	//if(getBGProc(&lproc));
-		
-	//bring the most recetly backgrounded job to the foreground
 	bringLastBGtoFG();
-	
-		//tcsetpgrp(0, shellPID);;
-
 }
 
-//void setLastBG(pid_t pid){
-	////printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	//lastBG.pid = pid;
-	//lastBG.pgid = getpgid(pid);
-//}
-
-//void setLastStoppedBG(pid_t pid){
-	////printf("lastStoppedBG lastStoppedBG.pid: %ld lastStoppedBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	//lastStoppedBG.pid = pid;
-	//lastStoppedBG.pgid = getpgid(pid);
-//}
-
+/**
+ * bring the last backgrounded job to the foreground
+*/
 void bringLastBGtoFG(){
 	int status;
 	
@@ -59,53 +43,33 @@ void bringLastBGtoFG(){
 	removehead(&last);
 	setFGProc(last.pid, last.pgid, last.command);
 	
-		//send a SIGCONT in case the job is stopped
+	//send a SIGCONT incase the job is stopped
 	if(killpg(last.pgid,SIGCONT) == -1)
 		perror("killpg() error");	
+	//if signal sent
 	else{
-		tcsetpgrp(0, last.pgid);
-		
-		//setFGProc(last.pid, last.pgid, last.command);
+		tcsetpgrp(0, last.pgid); //change the termninal control
 
+		//wait for this process to finish
 		waitpid(last.pid, &status, WUNTRACED);
 
+		//send shell back to FG
 		tcsetpgrp(0, shellPID);
 		tcsetpgrp(1, shellPID);	
 		tcsetpgrp(2, shellPID);		
 	}	
-	//setFGProc(shellPID, last.pgid, last.command);
-
-	//send a SIGCONT in case the job is stopped
-	//if(killpg(last.pgid,SIGCONT) == -1)
-	//	perror("killpg() error");	
-
-	//currentfg.pgid = last.pgid;
-	//currentfg.pid = last.pid;
 }
-
-//switch the terminal control back to the shell
-//void sendShellToFG(){
-	//printf("call to send shell to fg\n");
-	////printf("%s> ", shname);
-	//if(tcsetpgrp(0, shellPID) != -1){
-		//tcsetpgrp(1, shellPID);
-		//currentfg.pid = shellPID;
-		//currentfg.pgid = getpgid(shellPID);
-	//}
-	//else
-		//perror("setpgid() error");
-//}
-
+/**
+ * send a given process to the foreground
+ * @param pid_t to send to the foreground
+*/
 void sendToFG(pid_t pid){
-	//printf("Setting %ld to tc\n",(long) pid);
 	struct BGProc tofg;
+	//try removing from queue, store pid by reference
 	if(remqueue(pid, &tofg) == 1){
+		//try setting the TC to the process from the queue
 		if(tcsetpgrp(0, tofg.pgid) != -1){
-			//currentfg.pid = pid;
-			//currentfg.pgid = getpgid(pid);
 			setFGProc(tofg.pid, tofg.pgid, tofg.command);
-			//remqueue(currentfg.pid, NULL);
-			//removeProc(currentfg.pgid);
 		}
 		else
 			perror("setpgid() error");
@@ -114,21 +78,15 @@ void sendToFG(pid_t pid){
 	{
 		printf("Process is not in background\n");
 	}
-	
-	
-	//printf("\ntcgetpgrp: %ld\n",(long) tcgetpgrp(0));
 }
 
+/**
+ * send a given process to the background
+ * @param pid_t to send to the background , char* of the command 
+*/
 void sendToBG(pid_t pid, char* com){
+	//insert into the queue
 	enqueue(pid, getpgid(pid), com);
+	//the the shell to be in the FG
 	setFGProc(shellPID, shellPID, "Shell");
-	//printf("Foreground proc set\n");
-	//printf("setting currentfg, shellPID is: %i\n", shellPID);
-	//currentfg.pgid = shellPID;
-	//printf("setting currentfg.pid, shellPID is: %i\n", shellPID);
-	//currentfg.pid = shellPID;
-	//printf("shellPID in sendtobg is: %i\n", shellPID);
-	//sendShellToFG();
-	//printf("setLastBG lastBG.pid: %ld lastBG.pgid: %ld\n",(long) pid,(long) getpgid(pid));
-	//printf("exiting sendToBG\n");
 }
