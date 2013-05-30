@@ -13,10 +13,28 @@ int status;
 
 void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 {
+<<<<<<< HEAD
 	//set up struct objects to hold data durring signal handling
 	bgproc bgp;
 	fgproc fgp;
 	getFGProc(&fgp);
+||||||| merged common ancestors
+			//printf("entered sigchld if\n");
+		fgproc fgp;
+		getFGProc(&fgp);
+		
+		bgproc bgp;
+
+				//printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
+=======
+		printf("entered sigchld, signum: %i\n",sigNum);
+		fgproc fgp;
+		getFGProc(&fgp);
+		
+		bgproc bgp;
+
+				//printf("Child had some other exit status. Exit status was: %i\n", siginfo->si_code);
+>>>>>>> 0f8c2b6885c5c07c2fc9dba265687bb6fcd8efcf
 	
 	//if a process chages state this signal will be triggered
 	if(sigNum == SIGCHLD){
@@ -100,13 +118,30 @@ void signal_handler(int sigNum, siginfo_t *siginfo, void *context)
 		printf("Recieved SIGTOU");
 	}
 	//CTRL-C
+<<<<<<< HEAD
 	else if(sigNum == SIGTERM){
 		//should never reach this point
 		if(getpgid(0)==shellPID){
 			printf("Shell recieved CTRL-C\n");
+||||||| merged common ancestors
+	else if(sigNum == SIGTERM){
+
+		if(getpgid(0)==shellPID){
+			printf("Shell recieved CTRL-C\n");
+=======
+	else if(sigNum == SIGINT){
+		printf("\nCTRL-Z, siginfo->si_pid: %ld\n",(long) siginfo->si_pid);
+		printf("\nCTRL-Z, getpid(): %ld\n",(long) getpid());
+		printf("tcgetpgrp(0): %ld\n",(long) tcgetpgrp(0));
+		printf("fproc.pid: %ld\n", (long)fproc.pid);
+		if(fproc.pid != shellPID && fproc.pid != 0){
+			kill(fproc.pid, SIGINT);
+>>>>>>> 0f8c2b6885c5c07c2fc9dba265687bb6fcd8efcf
 		}
 		else{
-			printf("Foreground recieved CTRL-C\n");
+			//printf("do nothing\n");	
+			waitpid(-1,&status,WUNTRACED|WNOHANG);	
+			//the shell do nothing
 		}
 	}
 	//CTRL-Z
